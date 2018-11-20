@@ -1,0 +1,17 @@
+var config = {};
+
+// Used only if https is disabled
+config.listen_port = 3002;
+
+// Set this var to undefined if you don't want the server to listen on HTTPS
+config.https = {
+    enabled: true,
+    cert_file: 'cert/cert.pem',
+    key_file: 'cert/key.key',
+    port: 443
+};
+
+config.idp = '';
+config.eidas_node = '';
+
+module.exports = config;
