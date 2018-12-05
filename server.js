@@ -23,6 +23,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const app = express();
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+
 app.use(errorhandler({log: log.error}));
 
 let port = config.listen_port || 80;
@@ -32,20 +35,20 @@ app.set('port', port);
 
 // Create service provider
 var sp_options = {
-    entity_id: "",
-    private_key: fs.readFileSync("cert/node-key.pem").toString(),
-    certificate: '',
-    assert_endpoint: '',
-    audience: '',
+    entity_id: "https://"+config.eidas_node,
+    private_key: fs.readFileSync("cert/mashmetv-key.pem").toString(),
+    certificate: fs.readFileSync("cert/mashmetv-cert.pem").toString(),
+    assert_endpoint: "https://"+config.eidas_node,
+    audience: "https://"+config.eidas_node,
     sign_get_request: true,
     nameid_format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
-    provider_name: '',
+    provider_name: '344r3f3234234',
     auth_context: { comparison: "minimum", AuthnContextClassRef: ["http://eidas.europa.eu/LoA/low"] },
     force_authn: true,
     organization: '',
     contact: '',
-    valid_until: '',
-    sp_type: ''
+    valid_until: new Date(),
+    sp_type: 'public'
 };
 
 // Create identity provider
@@ -68,7 +71,37 @@ XMLNS = {
   EIDAS: 'http://eidas.europa.eu/saml-extensions'
 };
 
-app.use ('/', proxy(config.eidas_node, {
+// Create service provider
+var ap_connector_options = {
+    entity_id: "https://se-eidas.redsara.es/IdP/Metadata",
+    destination: "https://se-eidas.redsara.es/EidasNode/IdpResponse",
+    rsa_pub: fs.readFileSync("cert/pubkey.pem").toString(),
+    private_key: fs.readFileSync("cert/mashmetv-key.pem").toString(),
+    certificate: fs.readFileSync("cert/mashmetv-cert.pem").toString(),
+    sign_get_request: true,
+    encrypt_request: true,
+    inResponseTo: 'aaaaaaa' //ID_DE_CUANDO_SE_INTERCEPTA_AL_PRINCIPIO_LA_REQUEST
+};
+
+var apc = new saml2.APConnector(ap_connector_options);
+var extensions = {
+    prueba: "mosasaurio"
+}
+app.post('/wingardium_leviosa',function(req,res) {
+    var options = {
+        request_body: req.body,
+        extensions: extensions
+    };
+    apc.post_assert(idp, options, function(err, saml_response) {
+        if (err != null) {
+            console.log('------------------------------------ERROR------------------------------------', err);
+        } else {
+            console.log('------------------------------------ANOTTHAR DAY------------------------------------', saml_response);
+        }
+    });
+});
+
+/*app.use ('/', proxy(config.eidas_node, {
     proxyReqBodyDecorator: function(proxyReq, srcReq) {
         return new Promise(function(resolve, reject) {
 
@@ -102,7 +135,7 @@ app.use ('/', proxy(config.eidas_node, {
             });
         });
     }
-}));
+}));*/
 
 if (config.https.enabled === true) {
     const options = {
