@@ -125,20 +125,7 @@ app.post('/wingardium_leviosa',function(req,res) {
     });
 });
 
-app.post('/expelliarmus',function(req,res) {
-    var options = {
-        request_body: req.body
-    };
-    sp.post_assert(idp, options, function(err, saml_response) {
-        if (err != null) {
-            console.log('------------------------------------ERROR------------------------------------', err);
-        } else {
-            console.log(saml_response.user);
-        }
-    });
-});
-
-/*app.use ('/', proxy(config.eidas_node, {
+app.use ('/', proxy(config.eidas_node, {
     proxyReqBodyDecorator: function(proxyReq, srcReq) {
         return new Promise(function(resolve, reject) {
 
@@ -172,7 +159,7 @@ app.post('/expelliarmus',function(req,res) {
             });
         });
     }
-}));*/
+}));
 
 if (config.https.enabled === true) {
     const options = {
