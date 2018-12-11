@@ -8,6 +8,7 @@ var saml2 = require('./lib/saml2.js');
 var bodyParser = require('body-parser');
 var qs = require('querystring');
 var xmldom = require('xmldom');
+var ap = require('./lib/ap.js');
 
 config.azf = config.azf || {};
 config.https = config.https || {};
@@ -119,8 +120,8 @@ app.use ('/', proxy(config.eidas_node, {
                         var response_to = response_element.getAttribute('InResponseTo');
                         console.log('Requested Attributes Map', attributes_map);
                         console.log('In response to', response_to);
-
-                        console.log('Requested attributes: ', attributes_map[response_to]);
+                        var requested_attributes = attributes_map[response_to];
+                        console.log('Requested attributes: ', requested_attributes);
 
 
 
@@ -129,10 +130,46 @@ app.use ('/', proxy(config.eidas_node, {
                         var ser = new xmldom.XMLSerializer().serializeToString(dom);
                         var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
                         var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
-                        console.log('string', attributeStatement);
-                        var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
+                        // console.log('string', attributeStatement);
+                        // var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
 
-                        attributeStatement.appendChild(new_element);
+                        // attributeStatement.appendChild(new_element);
+
+                        var attributes = attributeStatement.getElementsByTagNameNS(XMLNS.SAML, 'Attribute');
+                        console.log('Received Attributes', attributes.length);
+                        var received_attributes = [];
+
+                        var needed_attributes = [];
+                        var personIdentifier;
+
+                        for (var i = 0; i < attributes.length; i++) {
+                            console.log('Attribute ', attributes[i].getAttribute('FriendlyName'));
+                            received_attributes.push(attributes[i].getAttribute('FriendlyName'));
+                            if (attributes[i].getAttribute('FriendlyName') === 'PersonIdentifier') {
+                                var value = attributes[i].getElementsByTagNameNS(XMLNS.SAML, 'AttributeValue')[0];
+                                personIdentifier = value.childNodes[0].nodeValue;
+                                console.log('PERSONAL ID', personIdentifier);
+                            };
+                        }
+
+                        for (var attr in requested_attributes) {
+                            console.log('He pedido ', requested_attributes[attr]);
+                            if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
+                                console.log('No me lo han dado');
+                                needed_attributes.push(requested_attributes[attr]);
+                            };
+                        }
+
+                        console.log('Necesito pedir al AP', needed_attributes);
+
+                        ap.getAttributes(personIdentifier, needed_attributes, function (response, error) {
+                            console.log('Y me devuelve ', response);
+
+                            // TODO: Add the new attributes in the response
+                            // TODO: To encrypt and sign again the response
+
+                            delete attributes_map[response_to];
+                        });
 
                         // console.log('string nuevo', new xmldom.XMLSerializer().serializeToString(dom));
 
