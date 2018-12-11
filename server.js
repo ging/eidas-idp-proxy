@@ -68,38 +68,80 @@ XMLNS = {
   EIDAS: 'http://eidas.europa.eu/saml-extensions'
 };
 
+//{id: [list of attributes]}
+var attributes_map = {};
+
 app.use ('/', proxy(config.eidas_node, {
     proxyReqBodyDecorator: function(proxyReq, srcReq) {
         return new Promise(function(resolve, reject) {
 
-            var json = qs.parse(proxyReq.toString('utf8'));
-            // console.log('Body', json);
-            var options = {request_body: json};
-            sp.post_assert(idp, options, function(err, saml_response) {
-                if (err != null) {
-                    console.log('ERROR', err);
-                        
-                } else {
-                    var dom = saml_response.decrypted;
+            if (srcReq.originalUrl === '/IdP/AuthenticateCitizen') {
+                console.log('**************************IDAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+                var json = qs.parse(proxyReq.toString('utf8'));
+                var samlreq = json.SAMLRequest;
+                var buff = new Buffer(samlreq, 'base64');  
+                var text = buff.toString('utf8');
+                var xml = new xmldom.DOMParser().parseFromString(text);
+                var request_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'AuthnRequest')[0];
+                var request_id = request_element.getAttribute('ID');
+                console.log('Request ID: ', request_id);
+                var extensions_element = request_element.getElementsByTagNameNS(XMLNS.SAMLP, 'Extensions')[0];
+                var requested_attributes = extensions_element.getElementsByTagNameNS(XMLNS.EIDAS, 'RequestedAttributes')[0];
+                var attributes = requested_attributes.getElementsByTagNameNS(XMLNS.EIDAS, 'RequestedAttribute');
+                console.log('Requested Attributes', attributes.length);
 
-                    var ser = new xmldom.XMLSerializer().serializeToString(dom);
+                attributes_map[request_id] = [];
 
-                    console.log('string', ser);
-
-                    var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
-
-
-                    var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
-
-                    var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
-
-                    attributeStatement.appendChild(new_element);
-
-                    console.log('string nuevo', new xmldom.XMLSerializer().serializeToString(dom));
-
-                    resolve(proxyReq);
+                for (var i = 0; i < attributes.length; i++) {
+                    console.log('Attribute ', attributes[i].getAttribute('FriendlyName'));
+                    attributes_map[request_id].push(attributes[i].getAttribute('FriendlyName'));
                 }
-            });
+                console.log('Requested Attributes Map', attributes_map);
+
+                resolve(proxyReq);
+            } else if (srcReq.originalUrl === '/EidasNode/IdpResponse') {
+                console.log('**************************VUELTAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+                var json = qs.parse(proxyReq.toString('utf8'));
+                // console.log('Body', json);
+                var options = {request_body: json};
+                sp.post_assert(idp, options, function(err, saml_response) {
+                    if (err != null) {
+                        console.log('ERROR', err);
+                            
+                    } else {
+
+
+                        var samlres = json.SAMLResponse;
+                        var buff = new Buffer(samlres, 'base64');  
+                        var text = buff.toString('utf8');
+                        var xml = new xmldom.DOMParser().parseFromString(text);
+                        var response_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'Response')[0];
+                        var response_to = response_element.getAttribute('InResponseTo');
+                        console.log('Requested Attributes Map', attributes_map);
+                        console.log('In response to', response_to);
+
+                        console.log('Requested attributes: ', attributes_map[response_to]);
+
+
+
+
+                        var dom = saml_response.decrypted;
+                        var ser = new xmldom.XMLSerializer().serializeToString(dom);
+                        var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
+                        var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
+                        console.log('string', attributeStatement);
+                        var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
+
+                        attributeStatement.appendChild(new_element);
+
+                        // console.log('string nuevo', new xmldom.XMLSerializer().serializeToString(dom));
+
+                        resolve(proxyReq);
+                    }
+                });
+            } else {
+                resolve(proxyReq);
+            }
         });
     }
 }));
