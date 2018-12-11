@@ -1,0 +1,13 @@
+<ds:KeyInfo>
+  <xenc:EncryptedKey Id="<%= id %>">
+    <xenc:EncryptionMethod Algorithm="<%= keyEncryptionMethod %>">
+      <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+    </xenc:EncryptionMethod>
+    <ds:KeyInfo>
+      <%- encryptionPublicCert %>
+    </ds:KeyInfo>
+    <xenc:CipherData>
+      <xenc:CipherValue><%= encryptedKey %></xenc:CipherValue>
+    </xenc:CipherData>
+  </xenc:EncryptedKey>
+</ds:KeyInfo>

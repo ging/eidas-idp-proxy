@@ -84,19 +84,56 @@ var ap_connector_options = {
 };
 
 var apc = new saml2.APConnector(ap_connector_options);
-var extensions = {
-    prueba: "mosasaurio"
-}
+
 app.post('/wingardium_leviosa',function(req,res) {
+    
+    var new_attributes = [
+        {'saml2:Attribute': {
+            "@FriendlyName": "DP", // Esto tiene que ser customizable 
+            "@Name": "http://eidas.europa.eu/attributes/naturalperson/DP", // Esto tiene que ser customizable 
+            "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+            "saml2:AttributeValue": {
+                "@xmlns:eidas-natural": "http://eidas.europa.eu/attributes/naturalperson", // Esto tiene que ser customizable 
+                "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+                "@xsi:type": "eidas-natural:DP", // Esto tiene que ser customizable
+                '#text': 'DP'
+            }
+        }},
+        {'saml2:Attribute': {
+            "@FriendlyName": "VR", // Esto tiene que ser customizable 
+            "@Name": "http://eidas.europa.eu/attributes/naturalperson/VR", // Esto tiene que ser customizable 
+            "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+            "saml2:AttributeValue": {
+                "@xmlns:eidas-natural": "http://eidas.europa.eu/attributes/naturalperson", // Esto tiene que ser customizable 
+                "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+                "@xsi:type": "eidas-natural:VR", // Esto tiene que ser customizable
+                '#text': 'VR'
+            }
+        }},
+    ]
+
     var options = {
         request_body: req.body,
-        extensions: extensions
+        new_attributes: new_attributes
     };
     apc.post_assert(idp, options, function(err, saml_response) {
         if (err != null) {
             console.log('------------------------------------ERROR------------------------------------', err);
         } else {
             console.log('------------------------------------ANOTTHAR DAY------------------------------------', saml_response);
+        }
+    });
+});
+
+app.post('/expelliarmus',function(req,res) {
+    var options = {
+        request_body: req.body
+    };
+    sp.post_assert(idp, options, function(err, saml_response) {
+        if (err != null) {
+            console.log('------------------------------------ERROR------------------------------------', err);
+        } else {
+            console.log(saml_response.user);
         }
     });
 });
