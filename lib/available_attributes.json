@@ -1,0 +1,18 @@
+{
+	"persona": {
+		"FamilyName": "apellido1",
+		"FirstName": "nombre",
+		"DateOfBirth": "fecha_nacimiento",
+		"CountryOfBirth": "pais",
+		"PlaceOfBirth": "localidad",
+		"Gender": "sexo",
+		"Email": "email",
+		"PhoneNumber": "telefono"
+	}, 
+	"academico": {
+		"HomeInstitutionAddress": "Av. Complutense Nº 30 28040 Madrid",
+	  "HomeInstitutionCountry": "Spain",
+	  "HomeInstitutionIdentifier": "??",
+	  "HomeInstitutionName": "Universidad Politecnica de Madrid"
+	}
+}

@@ -16,6 +16,7 @@
     "mocha": "~1.20.1",
     "node-forge": "^0.7.6",
     "openssl-wrapper": "^0.3.4",
+    "sha1": "^1.1.1",
     "should": "~4.0.4",
     "underscore": "^1.9.1",
     "xml-crypto": "^1.0.2",
@@ -39,6 +40,10 @@
     {
       "name": "Alvaro Alonso",
       "email": "aalonsog@dit.upm.es"
+    },
+    {
+      "name": "Alejandro Pozo",
+      "email": "apozo@dit.upm.es"
     }
   ],
   "scripts": {
