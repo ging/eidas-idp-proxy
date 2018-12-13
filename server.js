@@ -111,8 +111,8 @@ app.use ('/', proxy(config.eidas_node, {
                 // Create service provider
                 var ap_connector_options = {
                     private_key: fs.readFileSync("cert/node-key.pem").toString(),// fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
-                    certificate: [fs.readFileSync("cert/connector-es.pem").toString()], //fs.readFileSync("cert/mashmetv/mashmetv-cert.pem").toString(),
-                    rsa_pub: fs.readFileSync("cert/pubkey-connector.pem").toString() // fs.readFileSync("cert/mashmetv/mashmetv-pubkey.pem").toString()
+                    certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()], //fs.readFileSync("cert/mashmetv/mashmetv-cert.pem").toString(),
+                    rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString() // fs.readFileSync("cert/mashmetv/mashmetv-pubkey.pem").toString()
                 };
 
                 var apc = new saml2.APConnector(ap_connector_options);
@@ -227,7 +227,6 @@ app.use ('/', proxy(config.eidas_node, {
                                         reject(err)
                                     } else {
                                         console.log('**************************CIFRADOOOOOO')
-                                        console.log(saml_response)
                                         delete attributes_map[response_to];
                                         let buff = new Buffer(saml_response);
                                         let base64data = buff.toString('base64');
