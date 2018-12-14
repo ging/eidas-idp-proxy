@@ -1,0 +1,145 @@
+{
+     "CurrentDegree": {
+          "@FriendlyName":"CurrentDegree",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/CurrentDegree",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:CurrentDegree",
+              "#text": "CurrentDegree"
+          }
+     },
+     "CurrentLevelOfStudy": {
+          "@FriendlyName":"CurrentLevelOfStudy",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/CurrentLevelOfStudy",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:CurrentLevelOfStudy",
+              "#text": "CurrentLevelOfStudy"
+          }
+     },
+     "Degree": {
+          "@FriendlyName":"Degree",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/Degree",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:Degree",
+              "#text": "Degree"
+          }
+     },
+     "DegreeAwardingInstitution": {
+          "@FriendlyName":"DegreeAwardingInstitution",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/DegreeAwardingInstitution",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:DegreeAwardingInstitution",
+              "#text": "DegreeAwardingInstitution"
+          }
+     },
+     "DegreeCountry": {
+          "@FriendlyName":"DegreeCountry",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/DegreeCountry",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:DegreeCountry",
+              "#text": "DegreeCountry"
+          }
+     },
+     "FieldOfStudy": {
+          "@FriendlyName":"FieldOfStudy",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/FieldOfStudy",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:FieldOfStudy",
+              "#text": "FieldOfStudy"
+          }
+     },
+     "GraduationYear": {
+          "@FriendlyName":"GraduationYear",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/GraduationYear",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:GraduationYear",
+              "#text": "GraduationYear"
+          }
+     },
+     "LanguageCertificates": {
+          "@FriendlyName":"LanguageCertificates",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/LanguageCertificates",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:LanguageCertificates",
+              "#text": "LanguageCertificates"
+          }
+     },
+     "LanguageProficiency": {
+          "@FriendlyName":"LanguageProficiency",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/LanguageProficiency",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:LanguageProficiency",
+              "#text": "LanguageProficiency"
+          }
+     },
+     "HomeInstitutionAddress": {
+          "@FriendlyName":"HomeInstitutionAddress",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/homeinstitution/Address",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:HomeInstitutionAddress",
+              "#text": "HomeInstitutionAddress"
+          }
+     },
+     "HomeInstitutionCountry": {
+          "@FriendlyName":"HomeInstitutionCountry",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/homeinstitution/Country",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:HomeInstitutionAddress",
+              "#text": "HomeInstitutionAddress"
+          }
+     },
+     "HomeInstitutionIdentifier": {
+          "@FriendlyName":"HomeInstitutionIdentifier",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/homeinstitution/Identifier",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:HomeInstitutionIdentifier",
+              "#text": "HomeInstitutionIdentifier"
+          }
+     },
+     "HomeInstitutionName": {
+          "@FriendlyName":"HomeInstitutionName",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/homeinstitution/Name",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+              "@xsi:type": "sectorspecific:HomeInstitutionName",
+              "#text": "HomeInstitutionName"
+          }
+     }
+}

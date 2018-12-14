@@ -10,6 +10,8 @@ var qs = require('querystring');
 var xmldom = require('xmldom');
 var ap = require('./lib/ap.js');
 
+var academic_attributes = require('./lib/academic_attributes.json');
+
 config.azf = config.azf || {};
 config.https = config.https || {};
 
@@ -110,9 +112,15 @@ app.use ('/', proxy(config.eidas_node, {
 
                 // Create service provider
                 var ap_connector_options = {
-                    private_key: fs.readFileSync("cert/node-key.pem").toString(),// fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
-                    certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()], //fs.readFileSync("cert/mashmetv/mashmetv-cert.pem").toString(),
-                    rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString() // fs.readFileSync("cert/mashmetv/mashmetv-pubkey.pem").toString()
+                    node_private_key: fs.readFileSync("cert/node-key.pem").toString(),// fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
+                    node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()], //fs.readFileSync("cert/mashmetv/mashmetv-cert.pem").toString(),
+                    node_rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString(), // fs.readFileSync("cert/mashmetv/mashmetv-pubkey.pem").toString()
+                    ap_connector_cert: fs.readFileSync("cert/ap-connector-cert.pem").toString(),
+                    ap_connector_key: fs.readFileSync("cert/ap-connector-key.pem").toString(),
+                    ignore_timing: true, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA EL NOTBEFORE Y EL NOTYET
+                    ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
+                    audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
+                    ignore_signature: true
                 };
 
                 var apc = new saml2.APConnector(ap_connector_options);
@@ -127,6 +135,7 @@ app.use ('/', proxy(config.eidas_node, {
                         console.log('ERROR', err);
                         reject(err)                        
                     } else {
+
                         var samlres = JSON.parse(proxyReq.toString('utf8')).SAMLResponse; // VOLVER A CAMBIARLO A json.SAMLResponse
                         var buff = new Buffer(samlres, 'base64');
                         var text = buff.toString('utf8');
@@ -141,7 +150,6 @@ app.use ('/', proxy(config.eidas_node, {
 
 
                         var dom = response_validated.decrypted;
-                        var ser = new xmldom.XMLSerializer().serializeToString(dom);
                         var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
                         var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
                         // console.log('string', attributeStatement);
@@ -176,67 +184,95 @@ app.use ('/', proxy(config.eidas_node, {
 
                         console.log('Necesito pedir al AP', needed_attributes);
 
-                        // PRUEBA
-                        personIdentifier = '472789636A'
-                        needed_attributes = ['HomeInstitutionAddress',
-                                                'HomeInstitutionCountry',
-                                                'HomeInstitutionName']
+
+                        ////////////////////////////////////////////////// JUST A TEST IT SHOULD BE REOMOVED
+                        var attributes_to_be_included = [
+                            {
+                            "@FriendlyName":"CurrentDegree",
+                            "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/CurrentDegree",
+                            "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+                            "saml2:AttributeValue": {
+                                "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+                                "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+                                "@xsi:type": "sectorspecific:CurrentDegree",
+                                "#text": "CurrentDegree"
+                            }}, {
+                              "@FriendlyName":"CurrentLevelOfStudy",
+                              "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/CurrentLevelOfStudy",
+                              "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+                              "saml2:AttributeValue": {
+                                  "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
+                                  "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
+                                  "@xsi:type": "sectorspecific:CurrentLevelOfStudy",
+                                  "#text": "CurrentLevelOfStudy"
+                            }}
+                        ]
+
+                        var options_reencrypt = {
+                            saml_response: response_validated.saml_response,
+                            decrypted_assertion: response_validated.decrypted,
+                            new_attributes: attributes_to_be_included,
+                            is_assertion_firmed: response_validated.is_assertion_firmed
+                        };
+                        return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
+                            if (err != null) {
+                                console.log('ERROR', err);
+                                reject(err)
+                            } else {
+                                console.log('**************************CIFRADOOOOOO')
+                                delete attributes_map[response_to];
+                                let buff = new Buffer(saml_response);
+                                let base64data = buff.toString('base64');
+                                proxyReq.SAMLResponse = base64data;
+                                resolve(proxyReq);
+                            }
+                        })
+                        ////////////////////////////////////////////////////////////////////
 
 
-                        return ap.getAttributes(personIdentifier, needed_attributes, function (response, error) {
+
+                        /*return ap.getAttributes(personIdentifier, needed_attributes, function (error, response) {
                             if (error) {
                                 console.log("ERROR GET ATRRIBUTES", error)
                                 reject(error)
                             } else {
                                 console.log('Y me devuelve ', response);
+                                
+                                if (response.length > 0) {
+                                    var attributes_to_be_included = [];
 
-                                var new_attributes = [
-                                    {'saml2:Attribute': {
-                                        "@FriendlyName": "DP", // Esto tiene que ser customizable 
-                                        "@Name": "http://eidas.europa.eu/attributes/naturalperson/DP", // Esto tiene que ser customizable 
-                                        "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
-                                        "saml2:AttributeValue": {
-                                            "@xmlns:eidas-natural": "http://eidas.europa.eu/attributes/naturalperson", // Esto tiene que ser customizable 
-                                            "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
-                                            "@xsi:type": "eidas-natural:DP", // Esto tiene que ser customizable
-                                            '#text': 'DP'
+                                    // for (var i = 0; i < needed_attributes.length; i++) {
+                                    //     if (response[needed_attributes]) {
+                                    //         var attribute = academic_attributes[needed_attributes[i]];
+                                    //         attribute['saml2:AttributeValue']['#text'] = response[needed_attributes];
+                                    //         attributes_to_be_included.push({'saml2:Attribute': { attribute }});
+                                    //     }
+                                    // }
+
+                                    var options_reencrypt = {
+                                        saml_response: response_validated.saml_response,
+                                        decrypted_assertion: response_validated.decrypted,
+                                        new_attributes: attributes_to_be_included
+                                    };
+
+                                    return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
+                                        if (err != null) {
+                                            console.log('ERROR', err);
+                                            reject(err)
+                                        } else {
+                                            console.log('**************************CIFRADOOOOOO')
+                                            delete attributes_map[response_to];
+                                            let buff = new Buffer(saml_response);
+                                            let base64data = buff.toString('base64');
+                                            proxyReq.SAMLResponse = base64data;
+                                            resolve(proxyReq);
                                         }
-                                    }},
-                                    {'saml2:Attribute': {
-                                        "@FriendlyName": "VR", // Esto tiene que ser customizable 
-                                        "@Name": "http://eidas.europa.eu/attributes/naturalperson/VR", // Esto tiene que ser customizable 
-                                        "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
-                                        "saml2:AttributeValue": {
-                                            "@xmlns:eidas-natural": "http://eidas.europa.eu/attributes/naturalperson", // Esto tiene que ser customizable 
-                                            "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
-                                            "@xsi:type": "eidas-natural:VR", // Esto tiene que ser customizable
-                                            '#text': 'VR'
-                                        }
-                                    }},
-                                ]
-
-                                var options_reencrypt = {
-                                    saml_response: response_validated.saml_response,
-                                    decrypted_assertion: response_validated.decrypted,
-                                    new_attributes: new_attributes
-                                };
-
-                                return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
-                                    if (err != null) {
-                                        console.log('ERROR', err);
-                                        reject(err)
-                                    } else {
-                                        console.log('**************************CIFRADOOOOOO')
-                                        delete attributes_map[response_to];
-                                        let buff = new Buffer(saml_response);
-                                        let base64data = buff.toString('base64');
-                                        proxyReq.SAMLResponse = base64data;
-                                        resolve(proxyReq);
-                                    }
-                                })
+                                    })
+                                } else {
+                                    resolve(proxyReq);
+                                }
                             }
-
-                        });
+                        });*/
                     }
                 });
             } else {
