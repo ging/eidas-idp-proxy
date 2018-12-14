@@ -252,7 +252,8 @@ app.use ('/', proxy(config.eidas_node, {
                                     var options_reencrypt = {
                                         saml_response: response_validated.saml_response,
                                         decrypted_assertion: response_validated.decrypted,
-                                        new_attributes: attributes_to_be_included
+                                        new_attributes: attributes_to_be_included,
+                                        is_assertion_firmed: response_validated.is_assertion_firmed
                                     };
 
                                     return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
