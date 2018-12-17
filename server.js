@@ -112,22 +112,22 @@ app.use ('/', proxy(config.eidas_node, {
 
                 // Create service provider
                 var ap_connector_options = {
-                    node_private_key: fs.readFileSync("cert/node-key.pem").toString(),// fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
-                    node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()], //fs.readFileSync("cert/mashmetv/mashmetv-cert.pem").toString(),
-                    node_rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString(), // fs.readFileSync("cert/mashmetv/mashmetv-pubkey.pem").toString()
+                    node_private_key: fs.readFileSync("cert/node-key.pem").toString(),
+                    node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()],
+                    node_rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString(),
                     ap_connector_cert: fs.readFileSync("cert/ap-connector-cert.pem").toString(),
                     ap_connector_key: fs.readFileSync("cert/ap-connector-key.pem").toString(),
                     ignore_timing: true, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA EL NOTBEFORE Y EL NOTYET
                     ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
                     audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
-                    ignore_signature: true
+                    ignore_signature: false
                 };
 
                 var apc = new saml2.APConnector(ap_connector_options);
 
                 //console.log('Body', json);
                 var options_validate = {
-                    request_body: JSON.parse(proxyReq.toString('utf8')), // VOLVER A CAMBIARLO POR SOLO json
+                    request_body: json
                 };
                 return apc.post_assert(idp, options_validate, function(err, response_validated) {
 
@@ -135,11 +135,11 @@ app.use ('/', proxy(config.eidas_node, {
                         console.log('ERROR', err);
                         reject(err)                        
                     } else {
-
-                        var samlres = JSON.parse(proxyReq.toString('utf8')).SAMLResponse; // VOLVER A CAMBIARLO A json.SAMLResponse
+                        var samlres = json.SAMLResponse;
                         var buff = new Buffer(samlres, 'base64');
                         var text = buff.toString('utf8');
                         var xml = new xmldom.DOMParser().parseFromString(text);
+
                         var response_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'Response')[0];
                         var response_to = response_element.getAttribute('InResponseTo');
                         console.log('Requested Attributes Map', attributes_map);
@@ -159,6 +159,7 @@ app.use ('/', proxy(config.eidas_node, {
 
                         var attributes = attributeStatement.getElementsByTagNameNS(XMLNS.SAML, 'Attribute');
                         console.log('Received Attributes', attributes.length);
+
                         var received_attributes = [];
 
                         var needed_attributes = [];
@@ -184,70 +185,29 @@ app.use ('/', proxy(config.eidas_node, {
 
                         console.log('Necesito pedir al AP', needed_attributes);
 
-
-                        ////////////////////////////////////////////////// JUST A TEST IT SHOULD BE REOMOVED
-                        var attributes_to_be_included = [
-                            {
-                            "@FriendlyName":"CurrentDegree",
-                            "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/CurrentDegree",
-                            "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
-                            "saml2:AttributeValue": {
-                                "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
-                                "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
-                                "@xsi:type": "sectorspecific:CurrentDegree",
-                                "#text": "CurrentDegree"
-                            }}, {
-                              "@FriendlyName":"CurrentLevelOfStudy",
-                              "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/CurrentLevelOfStudy",
-                              "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
-                              "saml2:AttributeValue": {
-                                  "@xmlns:sectorspecific": "http://eidas.europa.eu/attributes/sectorspecific",
-                                  "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", 
-                                  "@xsi:type": "sectorspecific:CurrentLevelOfStudy",
-                                  "#text": "CurrentLevelOfStudy"
-                            }}
-                        ]
-
-                        var options_reencrypt = {
-                            saml_response: response_validated.saml_response,
-                            decrypted_assertion: response_validated.decrypted,
-                            new_attributes: attributes_to_be_included,
-                            is_assertion_firmed: response_validated.is_assertion_firmed
-                        };
-                        return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
-                            if (err != null) {
-                                console.log('ERROR', err);
-                                reject(err)
-                            } else {
-                                console.log('**************************CIFRADOOOOOO')
-                                delete attributes_map[response_to];
-                                let buff = new Buffer(saml_response);
-                                let base64data = buff.toString('base64');
-                                proxyReq.SAMLResponse = base64data;
-                                resolve(proxyReq);
-                            }
-                        })
-                        ////////////////////////////////////////////////////////////////////
-
-
-
-                        /*return ap.getAttributes(personIdentifier, needed_attributes, function (error, response) {
+                        return ap.getAttributes(personIdentifier, needed_attributes, function (error, response) {
                             if (error) {
                                 console.log("ERROR GET ATRRIBUTES", error)
                                 reject(error)
                             } else {
                                 console.log('Y me devuelve ', response);
                                 
-                                if (response.length > 0) {
+                                // ESTO HAY QUE QUITARlo y de  acacemin_attrbitues-json borrar los dos primeros: LegalName y LegalPersonIdentifier
+                                response = { CurrentDegree: 'noseque',LegalPersonIdentifier: 'jambuno',LegalName: 'nosque'}
+                                needed_attributes = ['CurrentDegree', 'LegalPersonIdentifier', 'LegalName']
+                                ///////////////////////////////////////
+
+                                if (Object.keys(response).length > 0) {
                                     var attributes_to_be_included = [];
 
-                                    // for (var i = 0; i < needed_attributes.length; i++) {
-                                    //     if (response[needed_attributes]) {
-                                    //         var attribute = academic_attributes[needed_attributes[i]];
-                                    //         attribute['saml2:AttributeValue']['#text'] = response[needed_attributes];
-                                    //         attributes_to_be_included.push({'saml2:Attribute': { attribute }});
-                                    //     }
-                                    // }
+                                    for (var i = 0; i < needed_attributes.length; i++) {
+                                        
+                                        if (response[needed_attributes[i]]) {
+                                            var attribute = academic_attributes[needed_attributes[i]];
+                                            attribute['saml2:AttributeValue']['#text'] = response[needed_attributes[i]];
+                                            attributes_to_be_included.push({'saml2:Attribute': { attribute }});
+                                        }
+                                    }
 
                                     var options_reencrypt = {
                                         saml_response: response_validated.saml_response,
@@ -265,15 +225,18 @@ app.use ('/', proxy(config.eidas_node, {
                                             delete attributes_map[response_to];
                                             let buff = new Buffer(saml_response);
                                             let base64data = buff.toString('base64');
-                                            proxyReq.SAMLResponse = base64data;
-                                            resolve(proxyReq);
+                                            json.SAMLResponse = base64data;
+                                            var json_string = qs.stringify(json)
+                                            var buffer_response = new Buffer(json_string);
+
+                                            resolve(buffer_response);
                                         }
                                     })
                                 } else {
                                     resolve(proxyReq);
                                 }
                             }
-                        });*/
+                        });
                     }
                 });
             } else {
