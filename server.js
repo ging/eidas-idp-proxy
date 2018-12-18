@@ -194,25 +194,9 @@ app.use ('/', proxy(config.eidas_node, {
                                     reject(error)
                                 } else {
                                     console.log('Y me devuelve ', response);
-                                    
-                                    // ESTO HAY QUE QUITARlo y de  acacemin_attrbitues-json borrar los dos primeros: LegalName y LegalPersonIdentifier
-                                    /*response = { CurrentLevelOfStudy: 7, HomeInstitutionName: 'noseque' }
-                                    needed_attributes = ['CurrentLevelOfStudy', 'HomeInstitutionName']*/
-                                    ///////////////////////////////////////
-
-                                   
 
                                     if (Object.keys(response).length > 0) {
                                          var attributes_to_be_included = [];
-
-                                        // for (var i = 0; i < needed_attributes.length; i++) {
-                                            
-                                        //     if (response[needed_attributes[i]]) {
-                                        //         var attribute = academic_attributes[needed_attributes[i]];
-                                        //         attribute['saml2:AttributeValue']['#text'] = response[needed_attributes[i]];
-                                        //         attributes_to_be_included.push({'saml2:Attribute': attribute });
-                                        //     }
-                                        // }
 
                                         for (var a in response) {
                                             var attribute = academic_attributes[a];

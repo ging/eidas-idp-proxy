@@ -10,8 +10,8 @@
 		"PhoneNumber": "telefono"
 	}, 
 	"academico": {
-		"HomeInstitutionAddress": "Av. Complutense Nº 30 28040 Madrid",
-	  "HomeInstitutionCountry": "Spain",
+		"HomeInstitutionAddress": "Av Complutense 30 28040 Madrid",
+	  "HomeInstitutionCountry": "ES",
 	  "HomeInstitutionIdentifier": "??",
 	  "HomeInstitutionName": "Universidad Politecnica de Madrid"
 	}
