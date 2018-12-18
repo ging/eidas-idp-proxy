@@ -200,23 +200,32 @@ app.use ('/', proxy(config.eidas_node, {
                                     needed_attributes = ['CurrentLevelOfStudy', 'HomeInstitutionName']*/
                                     ///////////////////////////////////////
 
-                                    if (Object.keys(response).length > 0) {
-                                        var attributes_to_be_included = [];
+                                   
 
-                                        for (var i = 0; i < needed_attributes.length; i++) {
+                                    if (Object.keys(response).length > 0) {
+                                         var attributes_to_be_included = [];
+
+                                        // for (var i = 0; i < needed_attributes.length; i++) {
                                             
-                                            if (response[needed_attributes[i]]) {
-                                                var attribute = academic_attributes[needed_attributes[i]];
-                                                attribute['saml2:AttributeValue']['#text'] = response[needed_attributes[i]];
-                                                attributes_to_be_included.push({'saml2:Attribute': attribute });
-                                            }
+                                        //     if (response[needed_attributes[i]]) {
+                                        //         var attribute = academic_attributes[needed_attributes[i]];
+                                        //         attribute['saml2:AttributeValue']['#text'] = response[needed_attributes[i]];
+                                        //         attributes_to_be_included.push({'saml2:Attribute': attribute });
+                                        //     }
+                                        // }
+
+                                        for (var a in response) {
+                                            var attribute = academic_attributes[a];
+                                            attribute['saml2:AttributeValue']['#text'] = response[a];
+                                            attributes_to_be_included.push({'saml2:Attribute': attribute });
                                         }
+
+                                        console.log('VOY A INCLUIR ', attributes_to_be_included);
 
                                         var options_reencrypt = {
                                             saml_response: response_validated.saml_response,
                                             decrypted_assertion: response_validated.decrypted,
                                             new_attributes: attributes_to_be_included,
-                                            noseque: response_validated.noseque,
                                             is_assertion_firmed: response_validated.is_assertion_firmed
                                         };
 
