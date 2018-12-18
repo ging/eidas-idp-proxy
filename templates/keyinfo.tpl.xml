@@ -1,12 +1,12 @@
-<ds:KeyInfo>
-  <xenc:EncryptedKey Id="<%= id %>">
+<ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+  <xenc:EncryptedKey Id="<%= id %>" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#">
     <xenc:EncryptionMethod Algorithm="<%= keyEncryptionMethod %>">
-      <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+      <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
     </xenc:EncryptionMethod>
     <ds:KeyInfo>
       <%- encryptionPublicCert %>
     </ds:KeyInfo>
-    <xenc:CipherData>
+    <xenc:CipherData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#">
       <xenc:CipherValue><%= encryptedKey %></xenc:CipherValue>
     </xenc:CipherData>
   </xenc:EncryptedKey>

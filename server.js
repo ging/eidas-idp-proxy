@@ -79,7 +79,7 @@ var attributes_map = {};
 
 app.use ('/', proxy(config.eidas_node, {
     proxyReqBodyDecorator: function(proxyReq, srcReq) {
-        // 138.4.7.110 proxyReq.connection.remoteAddress
+
         return new Promise(function(resolve, reject) {
             if (srcReq.originalUrl === '/IdP/AuthenticateCitizen') {
                 console.log('**************************IDAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
@@ -106,139 +106,144 @@ app.use ('/', proxy(config.eidas_node, {
 
                 resolve(proxyReq);
             } else if (srcReq.originalUrl === '/EidasNode/IdpResponse') {
-                console.log('**************************VUELTAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+                if (srcReq.connection.remoteAddress === '::ffff:138.4.7.110') {
+                    resolve(proxyReq);
+                } else {
+                    console.log('**************************VUELTAAAAAAAAAAAAAAAAAAAAAAAAAAA');
 
-                var json = qs.parse(proxyReq.toString('utf8'));
+                    var json = qs.parse(proxyReq.toString('utf8'));
 
-                // Create service provider
-                var ap_connector_options = {
-                    node_private_key: fs.readFileSync("cert/node-key.pem").toString(),
-                    node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()],
-                    node_rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString(),
-                    ap_connector_cert: fs.readFileSync("cert/ap-connector-cert.pem").toString(),
-                    ap_connector_key: fs.readFileSync("cert/ap-connector-key.pem").toString(),
-                    ignore_timing: true, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA EL NOTBEFORE Y EL NOTYET
-                    ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
-                    audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
-                    ignore_signature: false
-                };
+                    // Create service provider
+                    var ap_connector_options = {
+                        node_private_key: fs.readFileSync("cert/node-key.pem").toString(),
+                        node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()],
+                        node_rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString(),
+                        ap_connector_cert: fs.readFileSync("cert/idp-cert.pem").toString(),
+                        ap_connector_key: fs.readFileSync("cert/idp-key.pem").toString(),
+                        ignore_timing: true, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA EL NOTBEFORE Y EL NOTYET
+                        ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
+                        audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
+                        ignore_signature: false
+                    };
 
-                var apc = new saml2.APConnector(ap_connector_options);
+                    var apc = new saml2.APConnector(ap_connector_options);
 
-                //console.log('Body', json);
-                var options_validate = {
-                    request_body: json
-                };
-                return apc.post_assert(idp, options_validate, function(err, response_validated) {
+                    //console.log('Body', json);
+                    var options_validate = {
+                        request_body: json
+                    };
+                    return apc.post_assert(idp, options_validate, function(err, response_validated) {
 
-                    if (err != null) {
-                        console.log('ERROR', err);
-                        reject(err)                        
-                    } else {
-                        var samlres = json.SAMLResponse;
-                        var buff = new Buffer(samlres, 'base64');
-                        var text = buff.toString('utf8');
-                        var xml = new xmldom.DOMParser().parseFromString(text);
+                        if (err != null) {
+                            console.log('ERROR', err);
+                            reject(err)                        
+                        } else {
+                            var samlres = json.SAMLResponse;
+                            var buff = new Buffer(samlres, 'base64');
+                            var text = buff.toString('utf8');
+                            var xml = new xmldom.DOMParser().parseFromString(text);
 
-                        var response_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'Response')[0];
-                        var response_to = response_element.getAttribute('InResponseTo');
-                        console.log('Requested Attributes Map', attributes_map);
-                        console.log('In response to', response_to);
-                        var requested_attributes = attributes_map[response_to];
-                        console.log('Requested attributes: ', requested_attributes);
+                            var response_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'Response')[0];
+                            var response_to = response_element.getAttribute('InResponseTo');
+                            console.log('Requested Attributes Map', attributes_map);
+                            console.log('In response to', response_to);
+                            var requested_attributes = attributes_map[response_to];
+                            console.log('Requested attributes: ', requested_attributes);
 
 
 
-                        var dom = response_validated.decrypted;
-                        var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
-                        var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
-                        // console.log('string', attributeStatement);
-                        // var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
+                            var dom = response_validated.decrypted;
+                            var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
+                            var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
+                            // console.log('string', attributeStatement);
+                            // var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
 
-                        // attributeStatement.appendChild(new_element);
+                            // attributeStatement.appendChild(new_element);
 
-                        var attributes = attributeStatement.getElementsByTagNameNS(XMLNS.SAML, 'Attribute');
-                        console.log('Received Attributes', attributes.length);
+                            var attributes = attributeStatement.getElementsByTagNameNS(XMLNS.SAML, 'Attribute');
+                            console.log('Received Attributes', attributes.length);
 
-                        var received_attributes = [];
+                            var received_attributes = [];
 
-                        var needed_attributes = [];
-                        var personIdentifier;
+                            var needed_attributes = [];
+                            var personIdentifier;
 
-                        for (var i = 0; i < attributes.length; i++) {
-                            console.log('Attribute ', attributes[i].getAttribute('FriendlyName'));
-                            received_attributes.push(attributes[i].getAttribute('FriendlyName'));
-                            if (attributes[i].getAttribute('FriendlyName') === 'PersonIdentifier') {
-                                var value = attributes[i].getElementsByTagNameNS(XMLNS.SAML, 'AttributeValue')[0];
-                                personIdentifier = value.childNodes[0].nodeValue;
-                                console.log('PERSONAL ID', personIdentifier);
-                            };
-                        }
-
-                        for (var attr in requested_attributes) {
-                            console.log('He pedido ', requested_attributes[attr]);
-                            if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
-                                console.log('No me lo han dado');
-                                needed_attributes.push(requested_attributes[attr]);
-                            };
-                        }
-
-                        console.log('Necesito pedir al AP', needed_attributes);
-
-                        return ap.getAttributes(personIdentifier, needed_attributes, function (error, response) {
-                            if (error) {
-                                console.log("ERROR GET ATRRIBUTES", error)
-                                reject(error)
-                            } else {
-                                console.log('Y me devuelve ', response);
-                                
-                                // ESTO HAY QUE QUITARlo y de  acacemin_attrbitues-json borrar los dos primeros: LegalName y LegalPersonIdentifier
-                                response = { CurrentDegree: 'noseque',LegalPersonIdentifier: 'jambuno',LegalName: 'nosque'}
-                                needed_attributes = ['CurrentDegree', 'LegalPersonIdentifier', 'LegalName']
-                                ///////////////////////////////////////
-
-                                if (Object.keys(response).length > 0) {
-                                    var attributes_to_be_included = [];
-
-                                    for (var i = 0; i < needed_attributes.length; i++) {
-                                        
-                                        if (response[needed_attributes[i]]) {
-                                            var attribute = academic_attributes[needed_attributes[i]];
-                                            attribute['saml2:AttributeValue']['#text'] = response[needed_attributes[i]];
-                                            attributes_to_be_included.push({'saml2:Attribute': { attribute }});
-                                        }
-                                    }
-
-                                    var options_reencrypt = {
-                                        saml_response: response_validated.saml_response,
-                                        decrypted_assertion: response_validated.decrypted,
-                                        new_attributes: attributes_to_be_included,
-                                        is_assertion_firmed: response_validated.is_assertion_firmed
-                                    };
-
-                                    return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
-                                        if (err != null) {
-                                            console.log('ERROR', err);
-                                            reject(err)
-                                        } else {
-                                            console.log('**************************CIFRADOOOOOO')
-                                            delete attributes_map[response_to];
-                                            let buff = new Buffer(saml_response);
-                                            let base64data = buff.toString('base64');
-                                            json.SAMLResponse = base64data;
-                                            var json_string = qs.stringify(json)
-                                            var buffer_response = new Buffer(json_string);
-
-                                            resolve(buffer_response);
-                                        }
-                                    })
-                                } else {
-                                    resolve(proxyReq);
-                                }
+                            for (var i = 0; i < attributes.length; i++) {
+                                console.log('Attribute ', attributes[i].getAttribute('FriendlyName'));
+                                received_attributes.push(attributes[i].getAttribute('FriendlyName'));
+                                if (attributes[i].getAttribute('FriendlyName') === 'PersonIdentifier') {
+                                    var value = attributes[i].getElementsByTagNameNS(XMLNS.SAML, 'AttributeValue')[0];
+                                    personIdentifier = value.childNodes[0].nodeValue;
+                                    console.log('PERSONAL ID', personIdentifier);
+                                };
                             }
-                        });
-                    }
-                });
+
+                            for (var attr in requested_attributes) {
+                                console.log('He pedido ', requested_attributes[attr]);
+                                if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
+                                    console.log('No me lo han dado');
+                                    needed_attributes.push(requested_attributes[attr]);
+                                };
+                            }
+
+                            console.log('Necesito pedir al AP', needed_attributes);
+
+                            return ap.getAttributes(personIdentifier, needed_attributes, function (error, response) {
+                                if (error) {
+                                    console.log("ERROR GET ATRRIBUTES", error)
+                                    reject(error)
+                                } else {
+                                    console.log('Y me devuelve ', response);
+                                    
+                                    // ESTO HAY QUE QUITARlo y de  acacemin_attrbitues-json borrar los dos primeros: LegalName y LegalPersonIdentifier
+                                    /*response = { CurrentLevelOfStudy: 7, HomeInstitutionName: 'noseque' }
+                                    needed_attributes = ['CurrentLevelOfStudy', 'HomeInstitutionName']*/
+                                    ///////////////////////////////////////
+
+                                    if (Object.keys(response).length > 0) {
+                                        var attributes_to_be_included = [];
+
+                                        for (var i = 0; i < needed_attributes.length; i++) {
+                                            
+                                            if (response[needed_attributes[i]]) {
+                                                var attribute = academic_attributes[needed_attributes[i]];
+                                                attribute['saml2:AttributeValue']['#text'] = response[needed_attributes[i]];
+                                                attributes_to_be_included.push({'saml2:Attribute': attribute });
+                                            }
+                                        }
+
+                                        var options_reencrypt = {
+                                            saml_response: response_validated.saml_response,
+                                            decrypted_assertion: response_validated.decrypted,
+                                            new_attributes: attributes_to_be_included,
+                                            noseque: response_validated.noseque,
+                                            is_assertion_firmed: response_validated.is_assertion_firmed
+                                        };
+
+                                        return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
+                                            if (err != null) {
+                                                console.log('ERROR', err);
+                                                reject(err)
+                                            } else {
+                                                console.log('**************************CIFRADOOOOOO')
+                                                delete attributes_map[response_to];
+                                                let buff = new Buffer(saml_response);
+                                                let base64data = buff.toString('base64');
+                                                json.SAMLResponse = base64data;
+                                                var json_string = qs.stringify(json)
+                                                var buffer_response = new Buffer(json_string);
+
+                                                resolve(buffer_response);
+                                            }
+                                        })
+                                    } else {
+                                        resolve(proxyReq);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
             } else {
                 resolve(proxyReq);
             }

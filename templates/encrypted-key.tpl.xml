@@ -1,7 +1,7 @@
-<xenc:EncryptedData Id="<%= id %>" Type="http://www.w3.org/2001/04/xmlenc#Element" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#">
+<xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" Id="<%= id %>" Type="http://www.w3.org/2001/04/xmlenc#Element">
   <xenc:EncryptionMethod Algorithm="<%= contentEncryptionMethod %>" />
   <%- keyInfo %>
-  <xenc:CipherData>
+  <xenc:CipherData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#">
     <xenc:CipherValue><%= encryptedContent %></xenc:CipherValue>
   </xenc:CipherData>
 </xenc:EncryptedData>
