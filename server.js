@@ -77,7 +77,7 @@ XMLNS = {
 //{id: [list of attributes]}
 var attributes_map = {};
 
-app.use ('/', proxy(config.eidas_node, {
+app.use ('/IdP', proxy(config.idp, {
     proxyReqBodyDecorator: function(proxyReq, srcReq) {
 
         return new Promise(function(resolve, reject) {
@@ -105,7 +105,24 @@ app.use ('/', proxy(config.eidas_node, {
                 console.log('Requested Attributes Map', attributes_map);
 
                 resolve(proxyReq);
-            } else if (srcReq.originalUrl === '/EidasNode/IdpResponse') {
+            } else {
+                resolve(proxyReq);
+            }
+        })
+        
+    }, proxyReqPathResolver: function(req) {
+        return new Promise(function (resolve, reject) {
+            resolve('/IdP' + req.url);
+        });
+    }
+}));
+
+
+app.use ('/EidasNode', proxy(config.eidas_node, {
+    proxyReqBodyDecorator: function(proxyReq, srcReq) {
+
+        return new Promise(function(resolve, reject) {
+            if (srcReq.originalUrl === '/EidasNode/IdpResponse') {
                 if (srcReq.connection.remoteAddress === '::ffff:138.4.7.110') {
                     resolve(proxyReq);
                 } else {
@@ -239,10 +256,12 @@ app.use ('/', proxy(config.eidas_node, {
                 }
             } else {
                 resolve(proxyReq);
-            }
-
+            } 
         })
-        
+    }, proxyReqPathResolver: function(req) {
+        return new Promise(function (resolve, reject) {
+            resolve('/EidasNode' + req.url);
+        });
     }
 }));
 
