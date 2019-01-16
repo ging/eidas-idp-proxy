@@ -32,28 +32,6 @@ let port = config.listen_port || 80;
 if (config.https.enabled) {port = config.https.port || 443;}
 app.set('port', port);
 
-
-// Create service provider
-/*var sp_options = {
-    entity_id: "https://"+config.eidas_node,
-    private_key: fs.readFileSync("cert/mashmetv-key.pem").toString(),
-    certificate: fs.readFileSync("cert/mashmetv-cert.pem").toString(),
-    assert_endpoint: "https://"+config.eidas_node,
-    audience: "https://"+config.eidas_node,
-    sign_get_request: true,
-    nameid_format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
-    provider_name: '344r3f3234234',
-    auth_context: { comparison: "minimum", AuthnContextClassRef: ["http://eidas.europa.eu/LoA/low"] },
-    force_authn: true,
-    organization: '',
-    contact: '',
-    valid_until: new Date(),
-    sp_type: 'public'
-};
-
-var sp = new saml2.ServiceProvider(sp_options);
-*/
-
 // Create identity provider
 var idp_options = {
   sso_login_url: '',
@@ -104,7 +82,39 @@ app.use ('/IdP', proxy(config.idp, {
                 }
                 console.log('Requested Attributes Map', attributes_map);
 
-                resolve(proxyReq);
+
+                // Create service provider
+                var sp_options = {
+                    entity_id: "https://"+config.eidas_node,
+                    private_key: fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
+                    certificate: fs.readFileSync("cert/mashmetv/mashmetv-cert.pem").toString(),
+                    assert_endpoint: "https://"+config.eidas_node,
+                    audience: "https://"+config.eidas_node,
+                    sign_get_request: true,
+                    nameid_format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+                    provider_name: '344r3f3234234',
+                    auth_context: { comparison: "minimum", AuthnContextClassRef: ["http://eidas.europa.eu/LoA/low"] },
+                    force_authn: true,
+                    organization: '',
+                    contact: '',
+                    valid_until: new Date(),
+                    sp_type: 'public'
+                };
+
+                var sp = new saml2.ServiceProvider(sp_options);
+                
+                var new_issuer = 'https://idm-cef-fiware.dit.upm.es/idm/applications/mashmetv/saml2/metadata'
+
+                var resigned_authn_request = sp.refirm_authn_request(samlreq, new_issuer);
+
+                console.log("==================================")
+                console.log(resigned_authn_request)
+
+                json.SAMLRequest = resigned_authn_request;
+                var json_string = qs.stringify(json)
+                var buffer_response = new Buffer(json_string);
+
+                resolve(buffer_response);
             } else {
                 resolve(proxyReq);
             }
@@ -119,6 +129,7 @@ app.use ('/IdP', proxy(config.idp, {
 
 
 app.use ('/EidasNode', proxy(config.eidas_node, {
+    limit: '5mb',
     proxyReqBodyDecorator: function(proxyReq, srcReq) {
 
         return new Promise(function(resolve, reject) {
@@ -132,7 +143,7 @@ app.use ('/EidasNode', proxy(config.eidas_node, {
 
                     // Create service provider
                     var ap_connector_options = {
-                        node_private_key: fs.readFileSync("cert/node-key.pem").toString(),
+                        node_private_key: fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
                         node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()],
                         node_rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString(),
                         ap_connector_cert: fs.readFileSync("cert/idp-cert.pem").toString(),
