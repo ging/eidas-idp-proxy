@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Consent</title>
+    <script src="/javascripts/bootstrap.min.js"></script>
+    <link rel='stylesheet' type="text/css" href='/stylesheets/bootstrap.min.css' />
+    <link rel='stylesheet' type="text/css" href='/stylesheets/custom.css' />
+    <link rel='stylesheet' type="text/css" href='/stylesheets/awesome-bootstrap-checkbox.css' />
+</head>
+<body>
+    <main>
+        <div class="wrapper">
+            <div class="arrow"></div>
+            <div class="col-left">
+                <div class="col-left-inner">
+                    <div class="v-align">
+                        <h1 class="baseline_noAnim">
+                            Academic
+                            attributes
+                            request
+                        </h1>
+                    </div>
+                    <div class="illustration-fade-effect_noAnim"></div>
+                    <figure class="illustration_noAnim"></figure>
+                </div>
+            </div>
+            <div class="col-right">
+                <div class="col-right-inner">
+                    <div class="clearfix">
+                        <!-- <div class="menu-top"> 
+                            <a class="item text-minus" href="#"></a> 
+                            <a class="item text-plus" href="#"></a> 
+                            <a class="item contrast" href="#"></a> 
+                        </div> -->
+                    </div>
+                    <div class="col-right-content" style="font-size: 1em;">
+                        <form id="consentSelector" name="consentSelector" method="post" action="/EidasNode/IdpResponse" class="jsOK" disabled="true" autocomplete="off" style="display: block;">
+                            <input type="hidden" name="consent" value="true" />
+                            <input type="hidden" name="response_to" value="<%= response_to%>" />
+                            <div id="slider1" style="display: block;">
+                                <h1 class="title">
+                                    Eidas Node
+                                    is requesting the following attributes
+                                </h1>
+                                <h2 class="sub-title">These attributes are going to be requested to the ETSIT. If you click on next you will allow the application to read your personal information.</h2>
+                                <div class="row">
+                                    <% if(academic_attributes.length > 0) { %>
+                                        <div class="col-sm-6"> 
+                                            <h3>Academicals
+                                            </h3>
+                                            <ul class="list-unstyled check">
+                                                <% for(let i = 0; i < academic_attributes.length; i++) {%>
+                                                    <li>
+                                                        <%= academic_attributes[i] %>
+                                                    </li>
+                                                <% }%>
+                                            </ul>
+                                        </div>
+                                    <% } %>
+                                    <% if(personal_attributes.length > 0) { %>
+                                        <div class="col-sm-6"> 
+                                            <h3>Personal
+                                            </h3>
+                                            <ul class="list-unstyled check">
+                                                <% for(let i = 0; i < personal_attributes.length; i++) {%>
+                                                    <li>
+                                                        <%= personal_attributes[i] %>
+                                                    </li>
+                                                <% }%>
+                                            </ul>
+                                        </div>
+                                    <% } %>
+                                </div>
+                                <p class="box-btn">
+                                    <button type="button" class="btn btn-opposite" id="buttonCancelSlide1" name="buttonCancelSlide1"><span>Cancel</span></button>
+                                    <button type="submit" class="btn btn-next" id="buttonNextSlide1" name="buttonNextSlide1"><span>Next</span></button>
+                                </p>
+                                <footer class="footer">
+                                    <div hidden="true">Build version: 2018-11-22T10:36:27Z-eidas.dit.upm.es-1.4.3-1.4.3</div>
+                                </footer>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
