@@ -60,6 +60,20 @@ var idp_options = {
 var idp = new saml2.IdentityProvider(idp_options);
 
 // Create AP connector with lib/saml2.js 
+// AP CONNECTOR OPTIONS FOR TEST IDP
+// var ap_connector_options = {
+//     node_private_key: fs.readFileSync("cert/node-key.pem").toString(),
+//     node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()],
+//     node_rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString(),
+//     ap_connector_cert: fs.readFileSync("cert/idp-cert.pem").toString(),
+//     ap_connector_key: fs.readFileSync("cert/idp-key.pem").toString(),
+//     ignore_timing: true, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA EL NOTBEFORE Y EL NOTYET
+//     ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
+//     audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
+//     ignore_signature: false
+// };
+
+// AP CONNECTOR OPTIONS FOR REAL IDP
 var ap_connector_options = {
     node_private_key: fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
     node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()],
@@ -71,6 +85,7 @@ var ap_connector_options = {
     audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
     ignore_signature: false
 };
+
 var apc = new saml2.APConnector(ap_connector_options);
 //////////////////////////////////////////////////
 
@@ -180,7 +195,8 @@ app.use('/EidasNode', parse_response, proxy(config.eidas_node, {
     limit: '5mb',
     proxyReqBodyDecorator: function(proxyReq, srcReq) {
         if (srcReq.path === '/IdpResponse') {
-            return request_ap_and_reencrypt(srcReq.personIdentifier, srcReq.needed_attributes, srcReq.response_validated, proxyReq);
+            var json = qs.parse(proxyReq.toString('utf8'));
+            return request_ap_and_reencrypt(json, srcReq.response_to, srcReq.personIdentifier, srcReq.needed_attributes, srcReq.response_validated, proxyReq);
         } else {
             return new Promise(function (resolve, reject) {
                 resolve(proxyReq);
@@ -195,19 +211,23 @@ app.use('/EidasNode', parse_response, proxy(config.eidas_node, {
 
 // Parse IDP response and render consent view
 function parse_response(req, res, next) {
-    console.log("================ VUELTA ================");
-    // APARECEN MUCHOS VUELTA --> PAR_RES PORQUE SE PIDEN DEPENDENCIAS PARA RENDERIZAR LA PAGINA EN 
-    // EL NODO EIDAS. POR ESO SE COMPRUEBA EL PATH "/IdpResponse" PARA QUE SOLO SE PARSEE UNA VEZ 
-    console.log("VUELTA --> PAR_RES");
+    
     var json = req.body;
     if (req.path === '/IdpResponse') {
         if (json.consent) {
             req.personIdentifier = attributes_map[json.response_to]['personIdentifier'];
             req.needed_attributes = attributes_map[json.response_to]['needed_attributes'];
             req.response_validated = attributes_map[json.response_to]['response_validated'];
+            req.response_to = json.response_to;
 
             next();
         } else {
+            console.log("================ VUELTA ================");
+            // APARECEN MUCHOS VUELTA --> PAR_RES PORQUE SE PIDEN DEPENDENCIAS PARA RENDERIZAR LA PAGINA EN 
+            // EL NODO EIDAS. POR ESO SE COMPRUEBA EL PATH "/IdpResponse" PARA QUE SOLO SE PARSEE UNA VEZ 
+            console.log("VUELTA --> PAR_RES");
+
+
             var options_validate = {
                 request_body: json
             };
@@ -280,13 +300,13 @@ function parse_response(req, res, next) {
                     ];
                     //////////////////////////
 
+                    // TODO: hay que cambiar las opciones del apc connector para habilitar el timing y las audiences
+
 
                     if (academic_attributes_test.length <= 0 && personal_attributes_test.length <= 0) {
-                        req.personIdentifier = personIdentifier;
-                        req.needed_attributes = needed_attributes;
-                        req.response_validated = response_validated;
                         next();
                     } else {
+                        console.log("VUELTA --> PAR_RES: REEEEEENDEEEEER CONSEEEEEEEENT");
                         attributes_map[response_to]['personIdentifier'] = personIdentifier;
                         attributes_map[response_to]['needed_attributes'] = needed_attributes;
                         attributes_map[response_to]['response_validated'] = response_validated;
@@ -301,7 +321,7 @@ function parse_response(req, res, next) {
 }
 
 // Request academic attributes to AP after consent and reencrypt response
-function request_ap_and_reencrypt(personIdentifier, needed_attributes, response_validated, proxyReq) {
+function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_attributes, response_validated, proxyReq) {
     console.log("VUELTA --> RAP&REEN");
     return new Promise(function(resolve, reject) {
         // If no need_attributes just redirects request
@@ -316,43 +336,47 @@ function request_ap_and_reencrypt(personIdentifier, needed_attributes, response_
                 } else {
                     console.log("VUELTA --> RAP&REEN: AP me devuelve ", response);
 
-                    if (Object.keys(response).length > 0) {
-                         var attributes_to_be_included = [];
-
-                        for (var a in response) {
-                            var attribute = academic_attributes[a];
-                            attribute['saml2:AttributeValue']['#text'] = response[a];
-                            attributes_to_be_included.push({'saml2:Attribute': attribute });
-                        }
-
-                        console.log("VUELTA --> RAP&REEN: Voy a incluir ", attributes_to_be_included);
-
-                        var options_reencrypt = {
-                            saml_response: response_validated.saml_response,
-                            decrypted_assertion: response_validated.decrypted,
-                            new_attributes: attributes_to_be_included,
-                            is_assertion_firmed: response_validated.is_assertion_firmed
-                        };
-
-                        return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
-                            if (err != null) {
-                                console.log('VUELTA --> RAP&REEN: Error reencrypt ', err);
-                                reject(err)
-                            } else {
-                                console.log('VUELTA --> RAP&REEN: Cifrado conseguido')
-                                delete attributes_map[response_to];
-                                let buff = new Buffer(saml_response);
-                                let base64data = buff.toString('base64');
-                                json.SAMLResponse = base64data;
-                                var json_string = qs.stringify(json)
-                                var buffer_response = new Buffer(json_string);
-
-                                resolve(buffer_response);
-                            }
-                        })
-                    } else {
-                        resolve(proxyReq);
+                    // PONER PARA PROBAR EL CIFRADO
+                    response = {
+                        //"HomeInstitutionName": "noseque",
+                        "LegalName": "NOMBRE142",
+                        "LegalPersonIdentifier": "ES/ES/99999142H"
                     }
+                    //////////////////////////////////////
+
+                    var attributes_to_be_included = [];
+
+                    for (var a in response) {
+                        var attribute = academic_attributes[a];
+                        attribute['saml2:AttributeValue']['#text'] = response[a];
+                        attributes_to_be_included.push({'saml2:Attribute': attribute });
+                    }
+
+                    console.log("VUELTA --> RAP&REEN: Voy a incluir ", attributes_to_be_included);
+
+                    var options_reencrypt = {
+                        saml_response: response_validated.saml_response,
+                        decrypted_assertion: response_validated.decrypted,
+                        new_attributes: attributes_to_be_included,
+                        is_assertion_firmed: response_validated.is_assertion_firmed
+                    };
+
+                    return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
+                        if (err != null) {
+                            console.log('VUELTA --> RAP&REEN: Error reencrypt ', err);
+                            reject(err)
+                        } else {
+                            console.log('VUELTA --> RAP&REEN: Cifrado conseguido')
+                            delete attributes_map[response_to];
+                            let buff = new Buffer(saml_response);
+                            let base64data = buff.toString('base64');
+                            json.SAMLResponse = base64data;
+                            var json_string = qs.stringify(json)
+                            var buffer_response = new Buffer(json_string);
+
+                            resolve(buffer_response);
+                        }
+                    })
                 }
             });
         }
