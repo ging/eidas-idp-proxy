@@ -70,7 +70,8 @@ var idp = new saml2.IdentityProvider(idp_options);
 //     ignore_timing: true, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA EL NOTBEFORE Y EL NOTYET
 //     ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
 //     audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
-//     ignore_signature: false
+//     ignore_signature: false,
+//     new_issuer: null
 // };
 
 // AP CONNECTOR OPTIONS FOR REAL IDP
@@ -83,7 +84,8 @@ var ap_connector_options = {
     ignore_timing: true, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA EL NOTBEFORE Y EL NOTYET
     ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
     audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
-    ignore_signature: false
+    ignore_signature: false,
+    new_issuer: 'https://eidas.dit.upm.es/IdP/metadata'
 };
 
 var apc = new saml2.APConnector(ap_connector_options);
@@ -340,7 +342,7 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     response = {
                         //"HomeInstitutionName": "noseque",
                         "LegalName": "NOMBRE142",
-                        "LegalPersonIdentifier": "ES/ES/99999142H"
+                        "LegalPersonIdentifier": "99999142H"
                     }
                     //////////////////////////////////////
 
@@ -366,7 +368,7 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                             console.log('VUELTA --> RAP&REEN: Error reencrypt ', err);
                             reject(err)
                         } else {
-                            console.log('VUELTA --> RAP&REEN: Cifrado conseguido')
+                            console.log('VUELTA --> RAP&REEN: Cifrado conseguido');
                             delete attributes_map[response_to];
                             let buff = new Buffer(saml_response);
                             let base64data = buff.toString('base64');
