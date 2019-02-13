@@ -50,6 +50,9 @@ if (config.https.enabled) {port = config.https.port || 443;}
 app.set('port', port);
 
 
+
+
+
 //////////////////////////////////////////////////
 // Create Idp connector with lib/saml2.js 
 var idp_options = {
@@ -107,6 +110,9 @@ var ap_connector_options = {
 var apc = new saml2.APConnector(ap_connector_options);
 //////////////////////////////////////////////////
 
+
+
+
 // Attributes to identify parameters on saml requests and responses
 XMLNS = {
   SAML: 'urn:oasis:names:tc:SAML:2.0:assertion',
@@ -144,20 +150,20 @@ app.use ('/IdP', proxy(config.idp, {
                 var xml = new xmldom.DOMParser().parseFromString(text);
                 var request_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'AuthnRequest')[0];
                 var request_id = request_element.getAttribute('ID');
-                console.log('IDA - Request ID: ', request_id);
+                console.log('IDA --> Request ID: ', request_id);
                 var extensions_element = request_element.getElementsByTagNameNS(XMLNS.SAMLP, 'Extensions')[0];
                 var requested_attributes = extensions_element.getElementsByTagNameNS(XMLNS.EIDAS, 'RequestedAttributes')[0];
                 var attributes = requested_attributes.getElementsByTagNameNS(XMLNS.EIDAS, 'RequestedAttribute');
-                console.log('IDA - Requested Attributes', attributes.length);
+                console.log('IDA --> Requested Attributes', attributes.length);
 
                 attributes_map[request_id] = {};
                 attributes_map[request_id]['attributes'] = [];
 
                 for (var i = 0; i < attributes.length; i++) {
-                    console.log('IDA - Attribute ', attributes[i].getAttribute('FriendlyName'));
+                    console.log('IDA --> Attribute ', attributes[i].getAttribute('FriendlyName'));
                     attributes_map[request_id]['attributes'].push(attributes[i].getAttribute('FriendlyName'));
                 }
-                console.log('IDA - Requested Attributes Map', attributes_map);
+                console.log('IDA --> Requested Attributes Map', attributes_map);
 
 
                 // Create service provider
@@ -204,7 +210,7 @@ app.use ('/IdP', proxy(config.idp, {
 
 
 function rendering_object(req,res,next) {
-    req.res_for_render = res
+    req.res_for_render = res;
     next();
 }
 
@@ -246,8 +252,6 @@ app.use('/EidasNode', rendering_object, proxy(config.eidas_node, {
 function parse_response(json, proxyReq, res_for_render) {
     
     console.log("================ VUELTA ================");
-    // APARECEN MUCHOS VUELTA --> PAR_RES PORQUE SE PIDEN DEPENDENCIAS PARA RENDERIZAR LA PAGINA EN 
-    // EL NODO EIDAS. POR ESO SE COMPRUEBA EL PATH "/IdpResponse" PARA QUE SOLO SE PARSEE UNA VEZ 
     console.log("VUELTA --> PAR_RES");
 
     return new Promise(function(resolve, reject) {
