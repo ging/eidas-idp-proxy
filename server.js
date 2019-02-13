@@ -71,7 +71,8 @@ var idp = new saml2.IdentityProvider(idp_options);
 //     ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
 //     audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
 //     ignore_signature: false,
-//     new_issuer: null
+//     new_issuer: null,
+//     change_audiences: null
 // };
 
 // AP CONNECTOR OPTIONS FOR REAL IDP
@@ -85,8 +86,23 @@ var ap_connector_options = {
     ignore_audiences: true, // ESTO HAY QUE QUITARLO TAMBIEN
     audiences: null, // ESTO HAY QUE QUITARLO PARA QUE SE TENGA EN CUENTA LAS AUDIENCES
     ignore_signature: false,
-    new_issuer: 'https://eidas.dit.upm.es/IdP/metadata'
+    new_issuer: 'https://eidas.dit.upm.es/IdP/metadata',
+    change_audiences: 'https://eidas.dit.upm.es/EidasNode/ServiceRequesterMetadata'
 };
+
+// LISTA DE CAMBIOS PARA QUE FUNCIONE CON EL IDP REAL
+// IDA:
+//     - Nuevo metodo refirm_authn_request de SP: 
+//         - Refirma la peticion con los certificados de mashmetv
+//         - Cambia el issuer
+//         - Cambia el Destination
+//         - Añader AssertionConsumerService 
+// VUELTA:
+//     - Cambiar el issuer tanto el assertion y en la response
+//     - Cambiar las audiences
+//     - Eliminar un parametro del assertion llamado UserIdp
+//     - Añadir LegalName y LegalPersonIdentifier porque con el certificado el IDP no devuelve valores
+//     - Arrays de prueba que diferencian entre los atributos academicos y los personales antes de renderizar el consent
 
 var apc = new saml2.APConnector(ap_connector_options);
 //////////////////////////////////////////////////
@@ -188,248 +204,143 @@ app.use ('/IdP', proxy(config.idp, {
 
 
 function rendering_object(req,res,next) {
-    req.cosa = res;
+    req.res_for_render = res
     next();
 }
 
 // For requests from IdP to eIDAS Node
-app.use('/EidasNode', rendering_object, /*parse_response,*/ proxy(config.eidas_node, {
-    limit: '5mb',
-    proxyReqBodyDecorator: function(proxyReq, srcReq) {
-        if (srcReq.path === '/IdpResponse') {
+app.use('/EidasNode', rendering_object, proxy(config.eidas_node, {
+        limit: '5mb',
+        proxyReqBodyDecorator: function(proxyReq, srcReq) {
             var json = qs.parse(proxyReq.toString('utf8'));
-            if (json.consent) {
-                var response_to = json.response_to;
-                var personIdentifier = attributes_map[response_to]['personIdentifier'];
-                var needed_attributes = attributes_map[response_to]['needed_attributes'];
-                var response_validated = attributes_map[response_to]['response_validated'];
-                var previousProxyReq = attributes_map[response_to]['proxyReq'];
 
-                var previousJson = qs.parse(previousProxyReq.toString('utf8'));
+            if (srcReq.path === '/IdpResponse') {
+                var json = qs.parse(proxyReq.toString('utf8'));
+                if (json.consent) {
+                    var response_to = json.response_to;
+                    var personIdentifier = attributes_map[response_to]['personIdentifier'];
+                    var needed_attributes = attributes_map[response_to]['needed_attributes'];
+                    var response_validated = attributes_map[response_to]['response_validated'];
+                    var previousProxyReq = attributes_map[response_to]['proxyReq'];
 
-                return request_ap_and_reencrypt(previousJson, response_to, personIdentifier, needed_attributes, response_validated, previousProxyReq);
+                    var previousJson = qs.parse(previousProxyReq.toString('utf8'));
+
+                    return request_ap_and_reencrypt(previousJson, response_to, personIdentifier, needed_attributes, response_validated, previousProxyReq);
+                } else {
+                    return parse_response(json, proxyReq, srcReq.res_for_render);
+                }
             } else {
-                return parse_response(json, proxyReq, srcReq);
+                return new Promise(function (resolve, reject) {
+                    resolve(proxyReq);
+                });
             }
-        } else {
+        }, proxyReqPathResolver: function(req) {
             return new Promise(function (resolve, reject) {
-                resolve(proxyReq);
+                resolve('/EidasNode' + req.url);
             });
         }
-    }, proxyReqPathResolver: function(req) {
-        return new Promise(function (resolve, reject) {
-            resolve('/EidasNode' + req.url);
-        });
-    }
-}));
+    })
+);
 
 // Parse IDP response and render consent view
-function parse_response(json, proxyReq, srcReq) {
+function parse_response(json, proxyReq, res_for_render) {
     
     console.log("================ VUELTA ================");
     // APARECEN MUCHOS VUELTA --> PAR_RES PORQUE SE PIDEN DEPENDENCIAS PARA RENDERIZAR LA PAGINA EN 
     // EL NODO EIDAS. POR ESO SE COMPRUEBA EL PATH "/IdpResponse" PARA QUE SOLO SE PARSEE UNA VEZ 
     console.log("VUELTA --> PAR_RES");
 
-    var options_validate = {
-        request_body: json
-    };
+    return new Promise(function(resolve, reject) {
+        var options_validate = {
+            request_body: json
+        };
 
-    return apc.post_assert(idp, options_validate, function(err, response_validated) {
+        return apc.post_assert(idp, options_validate, function(err, response_validated) {
 
-        if (err != null) {
-            console.log("VUELTA --> PAR_RES: Error ", err);
-            // reject(err)                        
-        } else {
-            var samlres = json.SAMLResponse;
-            var buff = new Buffer(samlres, 'base64');
-            var text = buff.toString('utf8');
-            var xml = new xmldom.DOMParser().parseFromString(text);
-
-            var response_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'Response')[0];
-            var response_to = response_element.getAttribute('InResponseTo');
-            console.log('VUELTA --> PAR_RES: Requested Attributes Map', attributes_map[response_to]['attributes']);
-            console.log('VUELTA --> PAR_RES: In response to', response_to);
-            var requested_attributes = attributes_map[response_to]['attributes'];
-            console.log('VUELTA --> PAR_RES: Requested attributes: ', requested_attributes);
-
-
-
-            var dom = response_validated.decrypted;
-            var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
-            var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
-            // console.log('string', attributeStatement);
-            // var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
-
-            // attributeStatement.appendChild(new_element);
-
-            var attributes = attributeStatement.getElementsByTagNameNS(XMLNS.SAML, 'Attribute');
-            console.log('VUELTA --> PAR_RES: Received Attributes', attributes.length);
-
-            var received_attributes = [];
-
-            var needed_attributes = [];
-            var personIdentifier;
-
-            for (var i = 0; i < attributes.length; i++) {
-                console.log('VUELTA --> PAR_RES: Attribute ', attributes[i].getAttribute('FriendlyName'));
-                received_attributes.push(attributes[i].getAttribute('FriendlyName'));
-                if (attributes[i].getAttribute('FriendlyName') === 'PersonIdentifier') {
-                    var value = attributes[i].getElementsByTagNameNS(XMLNS.SAML, 'AttributeValue')[0];
-                    personIdentifier = value.childNodes[0].nodeValue;
-                    console.log('VUELTA --> PAR_RES: Personal ID', personIdentifier);
-                };
-            }
-
-            for (var attr in requested_attributes) {
-                console.log('VUELTA --> PAR_RES: He pedido ', requested_attributes[attr]);
-                if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
-                    console.log('VUELTA --> PAR_RES: No me lo han dado');
-                    needed_attributes.push(requested_attributes[attr]);
-                };
-            }
-
-            console.log('VUELTA --> PAR_RES: Necesito pedir al AP', needed_attributes);
-
-            // SUSTITUIRLO POR LO QUE HAY DENTRO DE needed_attributes
-            let academic_attributes_test = [
-                'HomeInstitutionAddress',
-                'HomeInstitutionCountry',
-                'HomeInstitutionIdentifier'
-            ];
-            let personal_attributes_test = [
-                'Photo',
-                'PhoneNumber'
-            ];
-            //////////////////////////
-
-            // TODO: hay que cambiar las opciones del apc connector para habilitar el timing y las audiences
-
-
-            if (academic_attributes_test.length <= 0 && personal_attributes_test.length <= 0) {
-                return request_ap_and_reencrypt(json, response_to, personIdentifier, needed_attributes, response_validated, proxyReq);
+            if (err != null) {
+                console.log("VUELTA --> PAR_RES: Error ", err);
+                // reject(err)                        
             } else {
-                console.log("VUELTA --> PAR_RES: REEEEEENDEEEEER CONSEEEEEEEENT");
-                attributes_map[response_to]['personIdentifier'] = personIdentifier;
-                attributes_map[response_to]['needed_attributes'] = needed_attributes;
-                attributes_map[response_to]['response_validated'] = response_validated;
-                attributes_map[response_to]['proxyReq'] = proxyReq;
-                return srcReq.res.render('consent', {academic_attributes: academic_attributes_test, personal_attributes: personal_attributes_test, response_to: response_to})
-            }
-        }
-    });
-}
 
-/*// Parse IDP response and render consent view
-function parse_response(req, res, next) {
-    
-    var json = req.body;
-    if (req.path === '/IdpResponse') {
-        if (json.consent) {
-            req.personIdentifier = attributes_map[json.response_to]['personIdentifier'];
-            req.needed_attributes = attributes_map[json.response_to]['needed_attributes'];
-            req.response_validated = attributes_map[json.response_to]['response_validated'];
-            req.response_to = json.response_to;
+                var samlres = json.SAMLResponse;
+                var buff = new Buffer(samlres, 'base64');
+                var text = buff.toString('utf8');
+                var xml = new xmldom.DOMParser().parseFromString(text);
 
-            next();
-        } else {
-            console.log("================ VUELTA ================");
-            // APARECEN MUCHOS VUELTA --> PAR_RES PORQUE SE PIDEN DEPENDENCIAS PARA RENDERIZAR LA PAGINA EN 
-            // EL NODO EIDAS. POR ESO SE COMPRUEBA EL PATH "/IdpResponse" PARA QUE SOLO SE PARSEE UNA VEZ 
-            console.log("VUELTA --> PAR_RES");
-
-
-            var options_validate = {
-                request_body: json
-            };
-
-            return apc.post_assert(idp, options_validate, function(err, response_validated) {
-
-                if (err != null) {
-                    console.log("VUELTA --> PAR_RES: Error ", err);
-                    // reject(err)                        
-                } else {
-                    var samlres = json.SAMLResponse;
-                    var buff = new Buffer(samlres, 'base64');
-                    var text = buff.toString('utf8');
-                    var xml = new xmldom.DOMParser().parseFromString(text);
-
-                    var response_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'Response')[0];
-                    var response_to = response_element.getAttribute('InResponseTo');
-                    console.log('VUELTA --> PAR_RES: Requested Attributes Map', attributes_map[response_to]['attributes']);
-                    console.log('VUELTA --> PAR_RES: In response to', response_to);
-                    var requested_attributes = attributes_map[response_to]['attributes'];
-                    console.log('VUELTA --> PAR_RES: Requested attributes: ', requested_attributes);
+                var response_element = xml.getElementsByTagNameNS(XMLNS.SAMLP, 'Response')[0];
+                var response_to = response_element.getAttribute('InResponseTo');
+                console.log('VUELTA --> PAR_RES: Requested Attributes Map', attributes_map[response_to]['attributes']);
+                console.log('VUELTA --> PAR_RES: In response to', response_to);
+                var requested_attributes = attributes_map[response_to]['attributes'];
+                console.log('VUELTA --> PAR_RES: Requested attributes: ', requested_attributes);
 
 
 
-                    var dom = response_validated.decrypted;
-                    var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
-                    var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
-                    // console.log('string', attributeStatement);
-                    // var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
+                var dom = response_validated.decrypted;
+                var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
+                var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
+                // console.log('string', attributeStatement);
+                // var new_element = new xmldom.DOMParser().parseFromString('<saml2:Attribute FriendlyName="PEPE" Name="http://eidas.europa.eu/attributes/naturalperson/PEPE" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eidas-natural:PEPE">PEPEITO</saml2:AttributeValue></saml2:Attribute>');  
 
-                    // attributeStatement.appendChild(new_element);
+                // attributeStatement.appendChild(new_element);
 
-                    var attributes = attributeStatement.getElementsByTagNameNS(XMLNS.SAML, 'Attribute');
-                    console.log('VUELTA --> PAR_RES: Received Attributes', attributes.length);
+                var attributes = attributeStatement.getElementsByTagNameNS(XMLNS.SAML, 'Attribute');
+                console.log('VUELTA --> PAR_RES: Received Attributes', attributes.length);
 
-                    var received_attributes = [];
+                var received_attributes = [];
 
-                    var needed_attributes = [];
-                    var personIdentifier;
+                var needed_attributes = [];
+                var personIdentifier;
 
-                    for (var i = 0; i < attributes.length; i++) {
-                        console.log('VUELTA --> PAR_RES: Attribute ', attributes[i].getAttribute('FriendlyName'));
-                        received_attributes.push(attributes[i].getAttribute('FriendlyName'));
-                        if (attributes[i].getAttribute('FriendlyName') === 'PersonIdentifier') {
-                            var value = attributes[i].getElementsByTagNameNS(XMLNS.SAML, 'AttributeValue')[0];
-                            personIdentifier = value.childNodes[0].nodeValue;
-                            console.log('VUELTA --> PAR_RES: Personal ID', personIdentifier);
-                        };
-                    }
-
-                    for (var attr in requested_attributes) {
-                        console.log('VUELTA --> PAR_RES: He pedido ', requested_attributes[attr]);
-                        if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
-                            console.log('VUELTA --> PAR_RES: No me lo han dado');
-                            needed_attributes.push(requested_attributes[attr]);
-                        };
-                    }
-
-                    console.log('VUELTA --> PAR_RES: Necesito pedir al AP', needed_attributes);
-
-                    // SUSTITUIRLO POR LO QUE HAY DENTRO DE needed_attributes
-                    let academic_attributes_test = [
-                        'HomeInstitutionAddress',
-                        'HomeInstitutionCountry',
-                        'HomeInstitutionIdentifier'
-                    ];
-                    let personal_attributes_test = [
-                        'Photo',
-                        'PhoneNumber'
-                    ];
-                    //////////////////////////
-
-                    // TODO: hay que cambiar las opciones del apc connector para habilitar el timing y las audiences
-
-
-                    if (academic_attributes_test.length <= 0 && personal_attributes_test.length <= 0) {
-                        next();
-                    } else {
-                        console.log("VUELTA --> PAR_RES: REEEEEENDEEEEER CONSEEEEEEEENT");
-                        attributes_map[response_to]['personIdentifier'] = personIdentifier;
-                        attributes_map[response_to]['needed_attributes'] = needed_attributes;
-                        attributes_map[response_to]['response_validated'] = response_validated;
-                        return res.render('consent', {academic_attributes: academic_attributes_test, personal_attributes: personal_attributes_test, response_to: response_to})
-                    }
+                for (var i = 0; i < attributes.length; i++) {
+                    console.log('VUELTA --> PAR_RES: Attribute ', attributes[i].getAttribute('FriendlyName'));
+                    received_attributes.push(attributes[i].getAttribute('FriendlyName'));
+                    if (attributes[i].getAttribute('FriendlyName') === 'PersonIdentifier') {
+                        var value = attributes[i].getElementsByTagNameNS(XMLNS.SAML, 'AttributeValue')[0];
+                        personIdentifier = value.childNodes[0].nodeValue;
+                        console.log('VUELTA --> PAR_RES: Personal ID', personIdentifier);
+                    };
                 }
-            });
-        }
-    } else {
-        next();
-    }
-}*/
+
+                for (var attr in requested_attributes) {
+                    console.log('VUELTA --> PAR_RES: He pedido ', requested_attributes[attr]);
+                    if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
+                        console.log('VUELTA --> PAR_RES: No me lo han dado');
+                        needed_attributes.push(requested_attributes[attr]);
+                    };
+                }
+
+                console.log('VUELTA --> PAR_RES: Necesito pedir al AP', needed_attributes);
+
+                // SUSTITUIRLO POR LO QUE HAY DENTRO DE needed_attributes
+                let academic_attributes_test = [
+                    'HomeInstitutionAddress',
+                    'HomeInstitutionCountry',
+                    'HomeInstitutionIdentifier'
+                ];
+                let personal_attributes_test = [
+                    'Photo',
+                    'PhoneNumber'
+                ];
+                //////////////////////////
+
+                // TODO: hay que cambiar las opciones del apc connector para habilitar el timing y las audiences
+
+
+                if (academic_attributes_test.length <= 0 && personal_attributes_test.length <= 0) {
+                    return request_ap_and_reencrypt(json, response_to, personIdentifier, needed_attributes, response_validated, proxyReq);
+                } else {
+                    console.log("VUELTA --> PAR_RES: REEEEEENDEEEEER CONSEEEEEEEENT");
+                    attributes_map[response_to]['personIdentifier'] = personIdentifier;
+                    attributes_map[response_to]['needed_attributes'] = needed_attributes;
+                    attributes_map[response_to]['response_validated'] = response_validated;
+                    attributes_map[response_to]['proxyReq'] = proxyReq;
+                    res_for_render.render('consent', {academic_attributes: academic_attributes_test, personal_attributes: personal_attributes_test, response_to: response_to})
+                }
+            }
+        });
+    })
+}
 
 // Request academic attributes to AP after consent and reencrypt response
 function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_attributes, response_validated, proxyReq) {
@@ -447,7 +358,7 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                 } else {
                     console.log("VUELTA --> RAP&REEN: AP me devuelve ", response);
 
-                    // PONER PARA PROBAR EL CIFRADO
+                    /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBNE PEDIR SIEMPRE ESTOS
                     response = {
                         //"HomeInstitutionName": "noseque",
                         "LegalName": "NOMBRE142",
