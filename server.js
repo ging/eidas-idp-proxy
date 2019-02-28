@@ -80,7 +80,7 @@ var idp = new saml2.IdentityProvider(idp_options);
 
 // AP CONNECTOR OPTIONS FOR REAL IDP
 var ap_connector_options = {
-    node_private_key: fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
+    node_private_key: fs.readFileSync("cert/node-key.pem").toString(),
     node_certificate: [fs.readFileSync("cert/node_eidas_certificate.pem").toString()],
     node_rsa_pub: fs.readFileSync("cert/node_eidas_pubkey.pem").toString(),
     ap_connector_cert: fs.readFileSync("cert/idp-cert.pem").toString(),
@@ -166,7 +166,7 @@ app.use ('/IdP', proxy(config.idp, {
                 console.log('IDA --> Requested Attributes Map', attributes_map);
 
 
-                // Create service provider
+               /* // Create service provider
                 var sp_options = {
                     entity_id: "https://"+config.eidas_node,
                     private_key: fs.readFileSync("cert/mashmetv/mashmetv-key.pem").toString(),
@@ -194,7 +194,8 @@ app.use ('/IdP', proxy(config.idp, {
                 var json_string = qs.stringify(json)
                 var buffer_response = new Buffer(json_string);
 
-                resolve(buffer_response);
+                resolve(buffer_response);*/
+                resolve(proxyReq);
             } else {
                 resolve(proxyReq);
             }
@@ -362,9 +363,21 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                 } else {
                     console.log("VUELTA --> RAP&REEN: AP me devuelve ", response);
 
-                    /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBNE PEDIR SIEMPRE ESTOS
+                    /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
                     response = {
-                        //"HomeInstitutionName": "noseque",
+                        "CurrentDegree": "PhD", // BA, MA o PhD
+                        "CurrentLevelOfStudy": "dasdas", // Must be a String
+                        "Degree": "7", // Must be a number
+                        "DegreeAwardingInstitution": "sadasdasd", // String
+                        "DegreeCountry": "ES", // Two characters
+                        "FieldOfStudy": "3", // Number i think
+                        "GraduationYear": "1998", // Four numbers
+                        /*"LanguageCertificates": "dasdas",
+                        "LanguageProficiency": "dasdas",
+                        "HomeInstitutionAddress": "dasdas",*/
+                        "HomeInstitutionIdentifier": "dasdas",
+                        "HomeInstitutionCountry": "ES", // Two characters
+                        "HomeInstitutionName": "noseque", // String
                         "LegalName": "NOMBRE142",
                         "LegalPersonIdentifier": "99999142H"
                     }
