@@ -364,23 +364,23 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     console.log("VUELTA --> RAP&REEN: AP me devuelve ", response);
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
-                    response = {
-                        // "CurrentDegree": "PhD", // BA, MA o PhD
-                        // "CurrentLevelOfStudy": "dasdas", // Must be a String
-                        // "Degree": "7", // Must be a number
-                        // "DegreeAwardingInstitution": "sadasdasd", // String
-                        // "DegreeCountry": "ES", // Two characters
-                        // "FieldOfStudy": "3", // Number i think
-                        // "GraduationYear": "1998", // Four numbers
-                        // /*"LanguageCertificates": "dasdas",
-                        // "LanguageProficiency": "dasdas",
-                        // "HomeInstitutionAddress": "dasdas",*/
-                        // "HomeInstitutionIdentifier": "dasdas",
-                        // "HomeInstitutionCountry": "ES", // Two characters
-                        // "HomeInstitutionName": "noseque", // String
-                        "LegalName": "NOMBRE142",
-                        "LegalPersonIdentifier": "99999142H"
-                    }
+                    // response = {
+                    //     // "CurrentDegree": "PhD", // BA, MA o PhD
+                    //     // "CurrentLevelOfStudy": "dasdas", // Must be a String
+                    //     // "Degree": "7", // Must be a number
+                    //     // "DegreeAwardingInstitution": "sadasdasd", // String
+                    //     // "DegreeCountry": "ES", // Two characters
+                    //     // "FieldOfStudy": "3", // Number i think
+                    //     // "GraduationYear": "1998", // Four numbers
+                    //     // /*"LanguageCertificates": "dasdas",
+                    //     // "LanguageProficiency": "dasdas",
+                    //     // "HomeInstitutionAddress": "dasdas",*/
+                    //     // "HomeInstitutionIdentifier": "dasdas",
+                    //     // "HomeInstitutionCountry": "ES", // Two characters
+                    //     // "HomeInstitutionName": "noseque", // String
+                    //     "LegalName": "NOMBRE142",
+                    //     "LegalPersonIdentifier": "99999142H"
+                    // }
                     //////////////////////////////////////
 
                     var attributes_to_be_included = [];
