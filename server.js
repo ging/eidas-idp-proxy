@@ -328,7 +328,7 @@ function parse_response(json, proxyReq, res_for_render) {
                     attributes_map[response_to]['needed_attributes'] = needed_attributes;
                     attributes_map[response_to]['response_validated'] = response_validated;
                     attributes_map[response_to]['proxyReq'] = proxyReq;
-                    res_for_render.render('consent', {attributes: needed_attributes, response_to: response_to})
+                    res_for_render.render('consent', {attributes: JSON.parse(JSON.stringify(needed_attributes)), response_to: response_to})
                 }
             }
         });
