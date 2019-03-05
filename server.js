@@ -353,6 +353,30 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
     return new Promise(function(resolve, reject) {
         // If no need_attributes just redirects request
         if (!needed_attributes || needed_attributes.length <= 0) {
+            var options_reencrypt = {
+                saml_response: response_validated.saml_response,
+                decrypted_assertion: response_validated.decrypted,
+                new_attributes: [],
+                is_assertion_firmed: response_validated.is_assertion_firmed
+            };
+
+            return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
+                if (err != null) {
+                    console.log('VUELTA --> RAP&REEN: Error reencrypt ', err);
+                    reject(err)
+                } else {
+                    console.log('VUELTA --> RAP&REEN: Cifrado conseguido');
+                    delete attributes_map[response_to];
+                    let buff = new Buffer(saml_response);
+                    let base64data = buff.toString('base64');
+                    json.SAMLResponse = base64data;
+                    var json_string = qs.stringify(json)
+                    var buffer_response = new Buffer(json_string);
+
+                    resolve(buffer_response);
+                }
+            })
+
             resolve(proxyReq);
         } else {
             // Send request to AP to obtain academic attributes
