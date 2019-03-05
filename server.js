@@ -395,6 +395,11 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     // }
                     //////////////////////////////////////
 
+                    if (needed_attributes.includes('LegalName'))
+                        response.LegalName = "NOMBRE142";
+                    if (needed_attributes.includes('LegalPersonIdentifier'))
+                        response.LegalPersonIdentifier = "99999142H";
+
                     var attributes_to_be_included = [];
 
                     for (var a in response) {
