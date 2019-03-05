@@ -317,22 +317,9 @@ function parse_response(json, proxyReq, res_for_render) {
 
                 console.log('VUELTA --> PAR_RES: Necesito pedir al AP', needed_attributes);
 
-                // SUSTITUIRLO POR LO QUE HAY DENTRO DE needed_attributes
-                let academic_attributes_test = [
-                    'HomeInstitutionAddress',
-                    'HomeInstitutionCountry',
-                    'HomeInstitutionIdentifier'
-                ];
-                let personal_attributes_test = [
-                    'Photo',
-                    'PhoneNumber'
-                ];
-                //////////////////////////
-
                 // TODO: hay que cambiar las opciones del apc connector para habilitar el timing y las audiences
 
-
-                if (academic_attributes_test.length <= 0 && personal_attributes_test.length <= 0) {
+                if (needed_attributes.length <= 0) {
                     return request_ap_and_reencrypt(json, response_to, personIdentifier, needed_attributes, response_validated, proxyReq);
                 } else {
                     console.log("VUELTA --> PAR_RES: REEEEEENDEEEEER CONSEEEEEEEENT");
@@ -340,7 +327,7 @@ function parse_response(json, proxyReq, res_for_render) {
                     attributes_map[response_to]['needed_attributes'] = needed_attributes;
                     attributes_map[response_to]['response_validated'] = response_validated;
                     attributes_map[response_to]['proxyReq'] = proxyReq;
-                    res_for_render.render('consent', {academic_attributes: academic_attributes_test, personal_attributes: personal_attributes_test, response_to: response_to})
+                    res_for_render.render('consent', {attributes: needed_attributes, response_to: response_to})
                 }
             }
         });

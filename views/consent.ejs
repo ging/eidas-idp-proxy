@@ -46,32 +46,16 @@
                                 </h1>
                                 <h2 class="sub-title">These attributes are going to be requested to the ETSIT. If you click on next you will allow the application to read your personal information.</h2>
                                 <div class="row">
-                                    <% if(academic_attributes.length > 0) { %>
-                                        <div class="col-sm-6"> 
-                                            <h3>Academicals
-                                            </h3>
-                                            <ul class="list-unstyled check">
-                                                <% for(let i = 0; i < academic_attributes.length; i++) {%>
-                                                    <li>
-                                                        <%= academic_attributes[i] %>
-                                                    </li>
-                                                <% }%>
-                                            </ul>
-                                        </div>
-                                    <% } %>
-                                    <% if(personal_attributes.length > 0) { %>
-                                        <div class="col-sm-6"> 
-                                            <h3>Personal
-                                            </h3>
-                                            <ul class="list-unstyled check">
-                                                <% for(let i = 0; i < personal_attributes.length; i++) {%>
-                                                    <li>
-                                                        <%= personal_attributes[i] %>
-                                                    </li>
-                                                <% }%>
-                                            </ul>
-                                        </div>
-                                    <% } %>
+                                    <div class="col-sm-12"> 
+                                        <h3>Personal and academic attributes</h3>
+                                        <ul class="list-unstyled check">
+                                            <% for(let i = 0; i < attributes.length; i++) {%>
+                                                <li>
+                                                    <%=attributes[i] %>
+                                                </li>
+                                            <% }%>
+                                        </ul>
+                                    </div>
                                 </div>
                                 <p class="box-btn">
                                     <button type="button" class="btn btn-opposite" id="buttonCancelSlide1" name="buttonCancelSlide1"><span>Cancel</span></button>
