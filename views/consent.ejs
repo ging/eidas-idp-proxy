@@ -50,8 +50,8 @@
                                         <h3>Personal and academic attributes</h3>
                                         <ul class="list-unstyled check">
                                             <% 
-                                            attributes.slice(attributes.indexOf('LegalPersonIdentifier'));
-                                            attributes.slice(attributes.indexOf('LegalName'));
+                                            attributes.splice(attributes.indexOf('LegalPersonIdentifier'), 1);
+                                            attributes.splice(attributes.indexOf('LegalName'), 1);
                                             if (attributes.length === 0) {%>
                                             <li>No extra attributes requiered</li>
                                             <%} else {
