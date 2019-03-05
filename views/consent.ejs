@@ -44,16 +44,24 @@
                                     Eidas Node
                                     is requesting the following attributes
                                 </h1>
-                                <h2 class="sub-title">These attributes are going to be requested to the ETSIT. If you click on next you will allow the application to read your personal information.</h2>
+                                <h2 class="sub-title">The following attributes are going to be requested to the ETSIT (UPM Telecommunications School). If you click on next you allow the application to read your personal information.</h2>
                                 <div class="row">
                                     <div class="col-sm-12"> 
                                         <h3>Personal and academic attributes</h3>
                                         <ul class="list-unstyled check">
-                                            <% for(let i = 0; i < attributes.length; i++) {%>
-                                                <li>
-                                                    <%=attributes[i] %>
-                                                </li>
-                                            <% }%>
+                                            <% 
+                                            attributes.slice(attributes.indexOf('LegalPersonIdentifier'));
+                                            attributes.slice(attributes.indexOf('LegalName'));
+                                            if (attributes.length === 0) {%>
+                                            <li>No extra attributes requiered</li>
+                                            <%} else {
+                                                for(let i = 0; i < attributes.length; i++) {%>
+                                                    <li>
+                                                        <%=attributes[i] %>
+                                                    </li>
+                                                <% }
+                                            }
+                                            %>
                                         </ul>
                                     </div>
                                 </div>

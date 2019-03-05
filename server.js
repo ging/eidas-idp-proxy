@@ -320,6 +320,7 @@ function parse_response(json, proxyReq, res_for_render) {
                 // TODO: hay que cambiar las opciones del apc connector para habilitar el timing y las audiences
 
                 if (needed_attributes.length <= 0) {
+                    // NOTE: Not sure if this path works
                     return request_ap_and_reencrypt(json, response_to, personIdentifier, needed_attributes, response_validated, proxyReq);
                 } else {
                     console.log("VUELTA --> PAR_RES: REEEEEENDEEEEER CONSEEEEEEEENT");
