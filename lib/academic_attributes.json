@@ -21,10 +21,36 @@
               "#text": "LegalPersonIdentifier"
           }
     },
-
-
-    
-
+    "CountryOfBirth": {
+      "@FriendlyName":"CountryOfBirth",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/naturalperson/CountryOfBirth",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+              "@xsi:type": "europass3:countryCode",
+              "#text": "CountryOfBirth"
+          }
+    },
+    "Email": {
+      "@FriendlyName":"Email",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/naturalperson/Email",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+              "@xsi:type": "eid4uP:rfc822mailboxType",
+              "#text": "Email"
+          }
+    },
+    "Phone": {
+      "@FriendlyName":"Phone",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/naturalperson/Phone",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+              "@xsi:type": "eid4uP:PhoneNumberType",
+              "#text": "Phone"
+          }
+    },
      "CurrentDegree": {
           "@FriendlyName":"CurrentDegree",
           "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/studies/CurrentDegree",
