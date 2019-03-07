@@ -375,13 +375,20 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                 } else {
                     console.log("VUELTA --> RAP&REEN: AP me devuelve ", response);
 
+                    // if (response.academico.HomeInstitutionAddress) {
+                        var address_xml = `<eidas: LocatorDesignator ></eidas: LocatorDesignator >
+                        <eidas: Thoroughfare >calle Destinatione </eidas: Thoroughfare >
+                        <eidas:PostName > </eidas:PostName >
+                        <eidas:PostCode ></eidas:Postcode >`
+                        // response.academico.HomeInstitutionAddress = address_xml.toString('base64');
+                    // }
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
                     response = {
                         "Phone": "0239402394023",
                         "Email": "test@test.com",
                         "CountryOfBirth": "ES",
-                        //"HomeInstitutionAddress": "dasdas",
+                        "HomeInstitutionAddress": address_xml.toString('base64'),
                         "HomeInstitutionIdentifier": "dasdas",
                         "HomeInstitutionCountry": "ES", // Two characters
                         "HomeInstitutionName": "noseque" // String
