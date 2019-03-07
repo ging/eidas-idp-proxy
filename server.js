@@ -375,24 +375,26 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                 } else {
                     console.log("VUELTA --> RAP&REEN: AP me devuelve ", response);
 
+                    // var address_xml;
                     // if (response.academico.HomeInstitutionAddress) {
-                        var address_xml = `<eidas: LocatorDesignator ></eidas: LocatorDesignator >
-                        <eidas: Thoroughfare >calle Destinatione </eidas: Thoroughfare >
-                        <eidas:PostName > </eidas:PostName >
-                        <eidas:PostCode ></eidas:Postcode >`
-                        // response.academico.HomeInstitutionAddress = address_xml.toString('base64');
+                    //     address_xml = `<eidas: LocatorDesignator>22</eidas: LocatorDesignator>
+                    //     <eidas: Thoroughfare>Arcacia Avenue</eidas: Thoroughfare>
+                    //     <eidas:PostName>London</eidas:PostName>
+                    //     <eidas:PostCode>SW1A 1AA</eidas:Postcode>`
+                    //     address_xml = new Buffer(address_xml).toString('base64');
+                    //     response.academico.HomeInstitutionAddress = address_xml;
                     // }
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
-                    response = {
-                        "Phone": "0239402394023",
-                        "Email": "test@test.com",
-                        "CountryOfBirth": "ES",
-                        "HomeInstitutionAddress": address_xml.toString('base64'),
-                        "HomeInstitutionIdentifier": "dasdas",
-                        "HomeInstitutionCountry": "ES", // Two characters
-                        "HomeInstitutionName": "noseque" // String
-                    }
+                    // response = {
+                    //     "Phone": "0239402394023",
+                    //     "Email": "test@test.com",
+                    //     "CountryOfBirth": "ES",
+                    //     "HomeInstitutionAddress": address_xml,
+                    //     "HomeInstitutionIdentifier": "dasdas",
+                    //     "HomeInstitutionCountry": "ES", // Two characters
+                    //     "HomeInstitutionName": "noseque" // String
+                    // }
                     //////////////////////////////////////
 
                     if (needed_attributes.includes('LegalName'))
