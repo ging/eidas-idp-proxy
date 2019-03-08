@@ -21,6 +21,29 @@
               "#text": "LegalPersonIdentifier"
           }
     },
+
+
+    "PlaceOfBirth": {
+      "@FriendlyName":"PlaceOfBirth",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/naturalperson/PlaceOfBirth",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+              "@xsi:type": "eidas:PlaceOfBirth",
+              "#text": "PlaceOfBirth"
+          }
+    },
+    "Gender": {
+      "@FriendlyName":"Gender",
+          "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/naturalperson/Gender",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+              "@xsi:type": "eidas:GenderType",
+              "#text": "Gender"
+          }
+    },
+
     "CountryOfBirth": {
       "@FriendlyName":"CountryOfBirth",
           "@Name": "http://eidas.europa.eu/attributes/sectorspecific/eid4u/naturalperson/CountryOfBirth",

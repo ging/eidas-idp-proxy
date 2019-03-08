@@ -17,7 +17,7 @@ const ap = require('./lib/ap.js');
 const config = require('./config');
 
 // Load available academic attributes json to generate a new response including parameters obtained from AP
-const academic_attributes = require('./lib/academic_attributes.json');
+const saml_attributes = require('./lib/saml_attributes.json');
 
 // Config HTTPs
 config.https = config.https || {};
@@ -407,7 +407,7 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     var attributes_to_be_included = [];
 
                     for (var a in response) {
-                        var attribute = academic_attributes[a];
+                        var attribute = saml_attributes[a];
                         attribute['saml2:AttributeValue']['#text'] = response[a];
                         attributes_to_be_included.push({'saml2:Attribute': attribute });
                     }
