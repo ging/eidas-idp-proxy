@@ -376,16 +376,16 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     console.log("VUELTA --> RAP&REEN: AP me devuelve ", response);
 
                     // var address_xml;
-                    // if (response.academico.HomeInstitutionAddress) {
-                    //     var address_values = response.academico.HomeInstitutionAddress.split(' '); 
-                    //     var local_designator = '<eidas: LocatorDesignator>'+address_values[2]+'</eidas: LocatorDesignator>'; 
-                    //     var thoroughfare = '<eidas: Thoroughfare>'+address_values[0] + ' ' + address_values[1]+'</eidas: Thoroughfare>';
-                    //     var post_name = '<eidas:PostName>'+address_values[4]+'</eidas:PostName>';
-                    //     var post_code = '<eidas:PostCode>'+address_values[3]+'</eidas:Postcode>';
-                    //     address_xml = local_designator + thoroughfare + post_name + post_code;
-                    //     address_xml = new Buffer(address_xml).toString('base64');
-                    //     response.academico.HomeInstitutionAddress = address_xml;
-                    // }
+                    if (response.HomeInstitutionAddress) {
+                         var address_values = response.HomeInstitutionAddress.split(' '); 
+                         var local_designator = '<eidas: LocatorDesignator>'+address_values[2]+'</eidas: LocatorDesignator>'; 
+                         var thoroughfare = '<eidas: Thoroughfare>'+address_values[0] + ' ' + address_values[1]+'</eidas: Thoroughfare>';
+                         var post_name = '<eidas:PostName>'+address_values[4]+'</eidas:PostName>';
+                         var post_code = '<eidas:PostCode>'+address_values[3]+'</eidas:Postcode>';
+                         address_xml = local_designator + thoroughfare + post_name + post_code;
+                         address_xml = new Buffer(address_xml).toString('base64');
+                         response.HomeInstitutionAddress = address_xml;
+                    }
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
                     // response = {
