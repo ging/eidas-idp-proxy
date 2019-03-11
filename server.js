@@ -426,10 +426,10 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
 
                     for (var i = 0; i < attributes.length; i++) {
                         var value = attributes[i].getElementsByTagNameNS(XMLNS.SAML, 'AttributeValue')[0];
-                        if (needed_attributes.includes('LegalName') && attributes[i].getAttribute('FriendlyName') === 'LegalName') {
+                        if (needed_attributes.includes('LegalName') && attributes[i].getAttribute('FriendlyName') === 'FirstName') {
                             response.LegalName = value.childNodes[0].nodeValue;
                         }
-                        if (needed_attributes.includes('LegalPersonIdentifier') && attributes[i].getAttribute('FriendlyName') === 'LegalPersonIdentifier') {
+                        if (needed_attributes.includes('LegalPersonIdentifier') && attributes[i].getAttribute('FriendlyName') === 'PersonIdentifier') {
                             response.LegalPersonIdentifier = value.childNodes[0].nodeValue;
                         }
                     }
