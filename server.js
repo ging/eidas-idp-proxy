@@ -217,37 +217,36 @@ function rendering_object(req,res,next) {
 
 // For requests from IdP to eIDAS Node
 app.use('/EidasNode', rendering_object, proxy(config.eidas_node, {
-        limit: '5mb',
-        proxyReqBodyDecorator: function(proxyReq, srcReq) {
+    limit: '5mb',
+    proxyReqBodyDecorator: function(proxyReq, srcReq) {
+        var json = qs.parse(proxyReq.toString('utf8'));
+
+        if (srcReq.path === '/IdpResponse') {
             var json = qs.parse(proxyReq.toString('utf8'));
+            if (json.consent) {
+                var response_to = json.response_to;
+                var personIdentifier = attributes_map[response_to]['personIdentifier'];
+                var needed_attributes = attributes_map[response_to]['needed_attributes'];
+                var response_validated = attributes_map[response_to]['response_validated'];
+                var previousProxyReq = attributes_map[response_to]['proxyReq'];
 
-            if (srcReq.path === '/IdpResponse') {
-                var json = qs.parse(proxyReq.toString('utf8'));
-                if (json.consent) {
-                    var response_to = json.response_to;
-                    var personIdentifier = attributes_map[response_to]['personIdentifier'];
-                    var needed_attributes = attributes_map[response_to]['needed_attributes'];
-                    var response_validated = attributes_map[response_to]['response_validated'];
-                    var previousProxyReq = attributes_map[response_to]['proxyReq'];
+                var previousJson = qs.parse(previousProxyReq.toString('utf8'));
 
-                    var previousJson = qs.parse(previousProxyReq.toString('utf8'));
-
-                    return request_ap_and_reencrypt(previousJson, response_to, personIdentifier, needed_attributes, response_validated, previousProxyReq);
-                } else {
-                    return parse_response(json, proxyReq, srcReq.res_for_render);
-                }
+                return request_ap_and_reencrypt(previousJson, response_to, personIdentifier, needed_attributes, response_validated, previousProxyReq);
             } else {
-                return new Promise(function (resolve, reject) {
-                    resolve(proxyReq);
-                });
+                return parse_response(json, proxyReq, srcReq.res_for_render);
             }
-        }, proxyReqPathResolver: function(req) {
+        } else {
             return new Promise(function (resolve, reject) {
-                resolve('/EidasNode' + req.url);
+                resolve(proxyReq);
             });
         }
-    })
-);
+    }, proxyReqPathResolver: function(req) {
+        return new Promise(function (resolve, reject) {
+            resolve('/EidasNode' + req.url);
+        });
+    }
+}));
 
 // Parse IDP response and render consent view
 function parse_response(json, proxyReq, res_for_render) {
@@ -311,10 +310,7 @@ function parse_response(json, proxyReq, res_for_render) {
                     console.log('VUELTA --> PAR_RES: He pedido ', requested_attributes[attr]);
                     if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
                         console.log('VUELTA --> PAR_RES: No me lo han dado');
-                        // CHECK IF USER IS A THE FAKE ONE
-                        if (personIdentifier !== '99999142H') {
-                            needed_attributes.push(requested_attributes[attr]);
-                        }
+                        needed_attributes.push(requested_attributes[attr]);
                     };
                 }
 
@@ -351,14 +347,14 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
             
             var attributes_to_be_included = []
 
-            if (personIdentifier !== 'ES/ES/99999142H') {
+/*            if (personIdentifier !== 'ES/ES/99999142H') {
                 var legal_name = saml_attributes['LegalName'];
                 legal_name['saml2:AttributeValue']['#text'] = "NOMBRE142";
                 var legal_person_identifier = saml_attributes['LegalPersonIdentifier'];
                 legal_person_identifier['saml2:AttributeValue']['#text'] = "99999142H";
                 attributes_to_be_included.push({'saml2:Attribute': legal_name });
                 attributes_to_be_included.push({'saml2:Attribute': legal_person_identifier });
-            }
+            }*/
 
             var options_reencrypt = {
                 saml_response: response_validated.saml_response,
@@ -418,16 +414,30 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     // }
                     //////////////////////////////////////
 
-                    if (personIdentifier !== 'ES/ES/99999142H') {
+                    /*if (personIdentifier !== 'ES/ES/99999142H') {
                         response.LegalName = "NOMBRE142";
                         response.LegalPersonIdentifier = "99999142H";
+                    }*/
+
+                    var dom = response_validated.decrypted;
+                    var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
+                    var attributeStatement = assertion_element.getElementsByTagNameNS(XMLNS.SAML, 'AttributeStatement')[0];
+                    var attributes = attributeStatement.getElementsByTagNameNS(XMLNS.SAML, 'Attribute');
+
+                    for (var i = 0; i < attributes.length; i++) {
+                        var value = attributes[i].getElementsByTagNameNS(XMLNS.SAML, 'AttributeValue')[0];
+                        if (needed_attributes.includes('LegalName') && attributes[i].getAttribute('FriendlyName') === 'LegalName') {
+                            response.LegalName = value.childNodes[0].nodeValue;
+                        }
+                        if (needed_attributes.includes('LegalPersonIdentifier') && attributes[i].getAttribute('FriendlyName') === 'LegalPersonIdentifier') {
+                            response.LegalPersonIdentifier = value.childNodes[0].nodeValue;
+                        }
                     }
 
-
-                    // if (needed_attributes.includes('LegalName'))
-                    //     response.LegalName = "NOMBRE142";
-                    // if (needed_attributes.includes('LegalPersonIdentifier'))
-                    //     response.LegalPersonIdentifier = "99999142H";
+                    /*if (needed_attributes.includes('LegalName'))
+                        response.LegalName = "NOMBRE142";
+                    if (needed_attributes.includes('LegalPersonIdentifier'))
+                        response.LegalPersonIdentifier = "99999142H";*/
 
 
                     var attributes_to_be_included = [];
