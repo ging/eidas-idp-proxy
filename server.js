@@ -324,7 +324,11 @@ function parse_response(json, proxyReq, res_for_render) {
 
                 if (needed_attributes.length <= 0) {
                     // NOTE: Not sure if this path works
-                    return request_ap_and_reencrypt(json, response_to, personIdentifier, needed_attributes, response_validated, proxyReq);
+                    return request_ap_and_reencrypt(json, response_to, personIdentifier, needed_attributes, response_validated, proxyReq).then(function(buffer_response) {
+                        resolve(buffer_response);
+                    }).catch(function(error) {
+                        reject(error);
+                    })
                 } else {
                     console.log("VUELTA --> PAR_RES: REEEEEENDEEEEER CONSEEEEEEEENT");
                     attributes_map[response_to]['personIdentifier'] = personIdentifier;
