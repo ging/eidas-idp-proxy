@@ -344,17 +344,24 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
     return new Promise(function(resolve, reject) {
         // If no need_attributes just redirects request
         if (!needed_attributes || needed_attributes.length <= 0) {
+            
+            var attributes_to_be_included = []
+
+            if (personIdentifier !== 'ES/ES/99999142H') {
+                var legal_name = saml_attributes['LegalName'];
+                legal_name['saml2:AttributeValue']['#text'] = "NOMBRE142";
+                var legal_person_identifier = saml_attributes['LegalPersonIdentifier'];
+                legal_person_identifier['saml2:AttributeValue']['#text'] = "99999142H";
+                attributes_to_be_included.push({'saml2:Attribute': legal_name });
+                attributes_to_be_included.push({'saml2:Attribute': legal_person_identifier });
+            }
+
             var options_reencrypt = {
                 saml_response: response_validated.saml_response,
                 decrypted_assertion: response_validated.decrypted,
-                new_attributes: [],
+                new_attributes: attributes_to_be_included,
                 is_assertion_firmed: response_validated.is_assertion_firmed
             };
-
-            if (personIdentifier !== 'ES/ES/99999142H') {
-                response.LegalName = "NOMBRE142";
-                response.LegalPersonIdentifier = "99999142H";
-            }
 
             return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
                 if (err != null) {
