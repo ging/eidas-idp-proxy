@@ -311,7 +311,10 @@ function parse_response(json, proxyReq, res_for_render) {
                     console.log('VUELTA --> PAR_RES: He pedido ', requested_attributes[attr]);
                     if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
                         console.log('VUELTA --> PAR_RES: No me lo han dado');
-                        needed_attributes.push(requested_attributes[attr]);
+                        // CHECK IF USER IS A THE FAKE ONE
+                        if (personidentifier !== 'ES/ES/99999142H') {
+                            needed_attributes.push(requested_attributes[attr]);
+                        }
                     };
                 }
 
@@ -399,10 +402,17 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     // }
                     //////////////////////////////////////
 
-                    if (needed_attributes.includes('LegalName'))
+                    if (personidentifier !== 'ES/ES/99999142H') {
                         response.LegalName = "NOMBRE142";
-                    if (needed_attributes.includes('LegalPersonIdentifier'))
                         response.LegalPersonIdentifier = "99999142H";
+                    }
+
+
+                    // if (needed_attributes.includes('LegalName'))
+                    //     response.LegalName = "NOMBRE142";
+                    // if (needed_attributes.includes('LegalPersonIdentifier'))
+                    //     response.LegalPersonIdentifier = "99999142H";
+
 
                     var attributes_to_be_included = [];
 
