@@ -312,7 +312,7 @@ function parse_response(json, proxyReq, res_for_render) {
                     if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
                         console.log('VUELTA --> PAR_RES: No me lo han dado');
                         // CHECK IF USER IS A THE FAKE ONE
-                        if (personIdentifier !== 'ES/ES/99999142H') {
+                        if (personIdentifier !== '99999142H') {
                             needed_attributes.push(requested_attributes[attr]);
                         }
                     };
