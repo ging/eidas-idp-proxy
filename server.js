@@ -312,7 +312,7 @@ function parse_response(json, proxyReq, res_for_render) {
                     if (received_attributes.indexOf(requested_attributes[attr]) === -1) {
                         console.log('VUELTA --> PAR_RES: No me lo han dado');
                         // CHECK IF USER IS A THE FAKE ONE
-                        if (personidentifier !== 'ES/ES/99999142H') {
+                        if (personIdentifier !== 'ES/ES/99999142H') {
                             needed_attributes.push(requested_attributes[attr]);
                         }
                     };
@@ -350,6 +350,11 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                 new_attributes: [],
                 is_assertion_firmed: response_validated.is_assertion_firmed
             };
+
+            if (personIdentifier !== 'ES/ES/99999142H') {
+                response.LegalName = "NOMBRE142";
+                response.LegalPersonIdentifier = "99999142H";
+            }
 
             return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
                 if (err != null) {
@@ -402,7 +407,7 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     // }
                     //////////////////////////////////////
 
-                    if (personidentifier !== 'ES/ES/99999142H') {
+                    if (personIdentifier !== 'ES/ES/99999142H') {
                         response.LegalName = "NOMBRE142";
                         response.LegalPersonIdentifier = "99999142H";
                     }
