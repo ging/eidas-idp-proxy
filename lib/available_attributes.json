@@ -7,7 +7,7 @@
 		"PlaceOfBirth": "localidad",
 		"Gender": "sexo",
 		"Email": "email",
-		"Phoner": "telefono"
+		"Phone": "telefono"
 	}, 
 	"academico": {
 	  "HomeInstitutionAddress": "Av Complutense 30 28040 Madrid",
