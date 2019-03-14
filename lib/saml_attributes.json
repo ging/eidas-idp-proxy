@@ -67,7 +67,7 @@
           "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
           "saml2:AttributeValue": {
               "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-              "@xsi:type": "eid4uP:rfc822mailboxType",
+              "@xsi:type": "eid4u:PhotoType",
               "#text": "CurrentPhoto"
           }
     },
