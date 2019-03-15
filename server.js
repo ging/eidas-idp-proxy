@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const qs = require('querystring');
 const xmldom = require('xmldom');
 const path = require('path');
+const base64Img = require('base64-img');
 
 // Load custom libraries
 const saml2 = require('./lib/saml2.js');
@@ -401,6 +402,8 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                          address_xml = new Buffer(address_xml).toString('base64');
                          response.HomeInstitutionAddress = address_xml;
                     }
+
+                    response.CurrentPhoto = base64Img.base64Sync('img/child.png');
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
                     // response = {
