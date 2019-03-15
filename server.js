@@ -403,7 +403,7 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                          response.HomeInstitutionAddress = address_xml;
                     }
 
-                    response.CurrentPhoto = base64Img.base64Sync('img/child.png');
+                    response.CurrentPhoto = fs.readFileSync('img/child.png').toString('base64');// base64Img.base64Sync('img/child.png');
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
                     // response = {
