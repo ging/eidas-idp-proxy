@@ -403,7 +403,8 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                          response.HomeInstitutionAddress = address_xml;
                     }
 
-                    response.CurrentPhoto = new Buffer(fs.readFileSync('img/child.png')).toString('base64');// base64Img.base64Sync('img/child.png');
+                    var image = '<eid4uP:document name="child.jpg" type="photo" xmime: contentType="image/png">'+new Buffer(fs.readFileSync('img/child.png')).toString('base64')+'</eid4uP:document>'
+                    response.CurrentPhoto = image;
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
                     // response = {
