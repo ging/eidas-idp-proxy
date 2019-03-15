@@ -405,7 +405,7 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
 
 
                     var image_data = new Buffer(fs.readFileSync('img/child.png')).toString('base64');
-                    var image = '<eid4uP:document name="child.png" type="photo" xmime:contentType="image/png">'+ image_data +'</eid4uP:document>'
+                    var image = '<eid4u:document xmlns:eid4u="http://eidas.europa.eu/attributes/sectorspecific/eid4u" name="child.png" type="photo" xmime:contentType="image/png">'+ image_data +'</eid4u:document>'
                     response.CurrentPhoto = new Buffer(image).toString('base64');
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
