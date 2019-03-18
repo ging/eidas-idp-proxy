@@ -430,7 +430,6 @@ h2.sub-title {
 	margin-top: 50px;
 	margin-bottom: 30px;
 	font-size: 1.2em;
-	text-align: justify;
 	text-transform: none;
 	font-weight: normal;
 }
@@ -466,7 +465,7 @@ ul.check li:before {
 	position: absolute;
 	left: 0;
 	font-family: 'icomoon';
-	content: "\f00c";
+	content: "\e901";
 	font-size: 1.1em;
 	line-height: 1.2em;
 	color: #B3B3B3;
