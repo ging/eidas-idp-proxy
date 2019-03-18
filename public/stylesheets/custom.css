@@ -197,13 +197,13 @@ main {
 	-moz-osx-font-smoothing: grayscale;
 }
 .icon-arrow-thin:before {
-	content: "\f061";
+	content: "\e900";
 }
 .icon-arrow-left:before {
-	content: "\f061";
+	content: "\e900";
 }
 .icon-arrow-right:before {
-	content: "\f061";
+	content: "\e900";
 }
 .icon-cancel:before {
 	content: "\e803";
@@ -287,7 +287,7 @@ a:hover {
 	color: #fff;
 }
 .arrow:after {
-	content: "\f061";
+	content: "\e900";
 	line-height: 80px;
 	display: inline-block;
 }
