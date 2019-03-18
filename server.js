@@ -403,8 +403,8 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                          response.HomeInstitutionAddress = address_xml;
                     }
 
-                    console.log(personIdentifier);
-                    if (needed_attributes.includes("CurrentPhoto") && personIdentifier === 'ES/ES/99999142H') {
+
+                    if (needed_attributes.includes("CurrentPhoto") && personIdentifier === '99999142H') {
                         var image_data = new Buffer(fs.readFileSync('img/child.jpg')).toString('base64');
                         var image = '<eid4u:document xmlns:eid4u="http://eidas.europa.eu/attributes/sectorspecific/eid4u" name="child.jpg" type="photo" contentType="image/jpeg">'+ image_data +'</eid4u:document>'
                         response.CurrentPhoto = new Buffer(image).toString('base64');
