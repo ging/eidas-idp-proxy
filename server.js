@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const qs = require('querystring');
 const xmldom = require('xmldom');
 const path = require('path');
+const base64Img = require('base64-img');
 
 // Load custom libraries
 const saml2 = require('./lib/saml2.js');
@@ -393,13 +394,20 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     // var address_xml;
                     if (response.HomeInstitutionAddress) {
                          var address_values = response.HomeInstitutionAddress.split(' '); 
-                         var local_designator = '<eidas: LocatorDesignator>'+address_values[2]+'</eidas: LocatorDesignator>'; 
-                         var thoroughfare = '<eidas: Thoroughfare>'+address_values[0] + ' ' + address_values[1]+'</eidas: Thoroughfare>';
+                         var local_designator = '<eidas:LocatorDesignator>'+address_values[2]+'</eidas:LocatorDesignator>'; 
+                         var thoroughfare = '<eidas:Thoroughfare>'+address_values[0] + ' ' + address_values[1]+'</eidas:Thoroughfare>';
                          var post_name = '<eidas:PostName>'+address_values[4]+'</eidas:PostName>';
                          var post_code = '<eidas:PostCode>'+address_values[3]+'</eidas:Postcode>';
                          address_xml = local_designator + thoroughfare + post_name + post_code;
                          address_xml = new Buffer(address_xml).toString('base64');
                          response.HomeInstitutionAddress = address_xml;
+                    }
+
+
+                    if (needed_attributes.includes("CurrentPhoto") && personIdentifier === '99999142H') {
+                        var image_data = new Buffer(fs.readFileSync('img/child.jpg')).toString('base64');
+                        var image = '<eid4u:document xmlns:eid4u="http://eidas.europa.eu/attributes/sectorspecific/eid4u" name="child.jpg" type="photo" contentType="image/jpeg">'+ image_data +'</eid4u:document>'
+                        response.CurrentPhoto = new Buffer(image).toString('base64');
                     }
 
                     /////// TODO: ESTOY HAY QUE VER PORQUE NO SE DEBEN PEDIR SIEMPRE ESTOS
@@ -414,10 +422,6 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                     // }
                     //////////////////////////////////////
 
-                    /*if (personIdentifier !== 'ES/ES/99999142H') {
-                        response.LegalName = "NOMBRE142";
-                        response.LegalPersonIdentifier = "99999142H";
-                    }*/
 
                     var dom = response_validated.decrypted;
                     var assertion_element = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')[0];
