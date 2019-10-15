@@ -4,7 +4,6 @@
           "@Name": "http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName",
           "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
           "saml2:AttributeValue": {
-              "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
               "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
               "@xsi:type": "eidas-natural:CurrentFamilyNameType",
               "#text": "FamilyName"
@@ -15,7 +14,6 @@
           "@Name": "http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName",
           "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
           "saml2:AttributeValue": {
-              "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
               "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
               "@xsi:type": "eidas-natural:CurrentGivenNameType",
               "#text": "FirstName"
@@ -26,7 +24,6 @@
           "@Name": "http://eidas.europa.eu/attributes/naturalperson/DateOfBirth",
           "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
           "saml2:AttributeValue": {
-              "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
               "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
               "@xsi:type": "eidas-natural:DateOfBirthType",
               "#text": "DateOfBirth"
