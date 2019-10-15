@@ -6,7 +6,7 @@
           "saml2:AttributeValue": {
               "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
               "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-              "@xsi:type": "eidas:CurrentFamilyName",
+              "@xsi:type": "eidas-natural:CurrentFamilyNameType",
               "#text": "FamilyName"
           }
     },
@@ -17,7 +17,7 @@
           "saml2:AttributeValue": {
               "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
               "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-              "@xsi:type": "eidas:CurrentGivenName",
+              "@xsi:type": "eidas-natural:CurrentGivenNameType",
               "#text": "FirstName"
           }
     },
@@ -28,7 +28,7 @@
           "saml2:AttributeValue": {
               "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
               "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-              "@xsi:type": "eidas:DateOfBirth",
+              "@xsi:type": "eidas-natural:DateOfBirthType",
               "#text": "DateOfBirth"
           }
     },
