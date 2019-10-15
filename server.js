@@ -361,7 +361,8 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                 saml_response: response_validated.saml_response,
                 decrypted_assertion: response_validated.decrypted,
                 new_attributes: attributes_to_be_included,
-                is_assertion_firmed: response_validated.is_assertion_firmed
+                is_assertion_firmed: response_validated.is_assertion_firmed,
+                attributes_to_be_removed: []
             };
 
             return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
@@ -383,6 +384,20 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
 
             resolve(proxyReq);
         } else {
+
+            // For testing students with no DNIe
+            var attributes_to_be_removed = [];
+            DNI = '';
+            if (DNI !== '') {
+                personIdentifier = DNI;
+                needed_attributes.push('FamilyName');
+                needed_attributes.push('FirstName');
+                needed_attributes.push('DateOfBirth');
+                attributes_to_be_removed.push('FamilyName');
+                attributes_to_be_removed.push('FirstName');
+                attributes_to_be_removed.push('DateOfBirth');
+            }
+
             // Send request to AP to obtain academic attributes
             return ap.getAttributes(personIdentifier, needed_attributes, function (error, response) {
                 if (error) {
@@ -458,7 +473,8 @@ function request_ap_and_reencrypt(json, response_to, personIdentifier, needed_at
                         saml_response: response_validated.saml_response,
                         decrypted_assertion: response_validated.decrypted,
                         new_attributes: attributes_to_be_included,
-                        is_assertion_firmed: response_validated.is_assertion_firmed
+                        is_assertion_firmed: response_validated.is_assertion_firmed,
+                        attributes_to_be_removed: attributes_to_be_removed
                     };
 
                     return apc.reencrypt_response(idp, options_reencrypt, function(err, saml_response) {
