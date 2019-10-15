@@ -21,6 +21,17 @@
               "#text": "FirstName"
           }
     },
+    "DateOfBirth": {
+      "@FriendlyName":"DateOfBirth",
+          "@Name": "http://eidas.europa.eu/attributes/naturalperson/DateOfBirth",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+              "@xsi:type": "eidas:DateOfBirth",
+              "#text": "DateOfBirth"
+          }
+    },
     "LegalName": {
       "@FriendlyName":"LegalName",
           "@Name": "http://eidas.europa.eu/attributes/legalperson/LegalName",
