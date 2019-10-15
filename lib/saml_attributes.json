@@ -1,4 +1,26 @@
 {
+    "FamilyName": {
+      "@FriendlyName":"FamilyName",
+          "@Name": "http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+              "@xsi:type": "eidas:CurrentFamilyName",
+              "#text": "FamilyName"
+          }
+    },
+    "FirstName": {
+      "@FriendlyName":"FirstName",
+          "@Name": "http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName",
+          "@NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+          "saml2:AttributeValue": {
+              "@xmlns:eidas-legal": "http://eidas.europa.eu/attributes/naturalperson",
+              "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+              "@xsi:type": "eidas:CurrentGivenName",
+              "#text": "FirstName"
+          }
+    },
     "LegalName": {
       "@FriendlyName":"LegalName",
           "@Name": "http://eidas.europa.eu/attributes/legalperson/LegalName",
